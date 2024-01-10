@@ -11,7 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package nats.io;
+package nats.io.nkeys;
 
-public class NKey {
+class DecodedSeed {
+    public final int prefix;
+    public final byte[] bytes;
+
+    public DecodedSeed(int prefix, byte[] bytes) {
+        this.prefix = prefix;
+        this.bytes = bytes;
+    }
 }
