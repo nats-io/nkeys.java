@@ -11,9 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package nats.io.nkeys;
-
-import static nats.io.nkeys.Common.*;
+package io.nats.nkeys;
 
 /**
  * NKeys use a prefix byte to indicate their intended owner: 'N' = server, 'C' =
@@ -22,17 +20,17 @@ import static nats.io.nkeys.Common.*;
  */
 public enum NKeyType {
     /** A user NKey. */
-    USER(PREFIX_BYTE_USER),
+    USER(Common.PREFIX_BYTE_USER),
     /** An account NKey. */
-    ACCOUNT(PREFIX_BYTE_ACCOUNT),
+    ACCOUNT(Common.PREFIX_BYTE_ACCOUNT),
     /** A server NKey. */
-    SERVER(PREFIX_BYTE_SERVER),
+    SERVER(Common.PREFIX_BYTE_SERVER),
     /** An operator NKey. */
-    OPERATOR(PREFIX_BYTE_OPERATOR),
+    OPERATOR(Common.PREFIX_BYTE_OPERATOR),
     /** A cluster NKey. */
-    CLUSTER(PREFIX_BYTE_CLUSTER),
+    CLUSTER(Common.PREFIX_BYTE_CLUSTER),
     /** A private NKey. */
-    PRIVATE(PREFIX_BYTE_PRIVATE);
+    PRIVATE(Common.PREFIX_BYTE_PRIVATE);
 
     public final int prefix;
 
@@ -41,17 +39,17 @@ public enum NKeyType {
     }
 
     public static NKeyType fromPrefix(int prefix) {
-        if (prefix == PREFIX_BYTE_ACCOUNT) {
+        if (prefix == Common.PREFIX_BYTE_ACCOUNT) {
             return ACCOUNT;
-        } else if (prefix == PREFIX_BYTE_SERVER) {
+        } else if (prefix == Common.PREFIX_BYTE_SERVER) {
             return SERVER;
-        } else if (prefix == PREFIX_BYTE_USER) {
+        } else if (prefix == Common.PREFIX_BYTE_USER) {
             return USER;
-        } else if (prefix == PREFIX_BYTE_CLUSTER) {
+        } else if (prefix == Common.PREFIX_BYTE_CLUSTER) {
             return CLUSTER;
-        } else if (prefix == PREFIX_BYTE_PRIVATE) {
+        } else if (prefix == Common.PREFIX_BYTE_PRIVATE) {
             return ACCOUNT;
-        } else if (prefix == PREFIX_BYTE_OPERATOR) {
+        } else if (prefix == Common.PREFIX_BYTE_OPERATOR) {
             return OPERATOR;
         }
 
