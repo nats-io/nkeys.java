@@ -50,7 +50,7 @@ test {
 javadoc {
     options.overview = 'src/main/javadoc/overview.html' // relative to source root
     source = sourceSets.main.allJava
-    title = "NATS.IO Java Server Runner"
+    title = "NATS.IO Java NKeys"
     classpath = sourceSets.main.runtimeClasspath
     doLast {
         if (!OperatingSystem.current().isWindows()) {
