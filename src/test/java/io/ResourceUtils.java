@@ -1,4 +1,4 @@
-package nats.io;
+package io;
 
 import java.io.File;
 import java.nio.file.Files;

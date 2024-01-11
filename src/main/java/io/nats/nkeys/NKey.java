@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package nats.io.nkeys;
+package io.nats.nkeys;
 
 import net.i2p.crypto.eddsa.EdDSAEngine;
 import net.i2p.crypto.eddsa.EdDSAPrivateKey;
@@ -25,8 +25,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.*;
 import java.util.Arrays;
-
-import static nats.io.nkeys.Common.*;
 
 /**
  * <p>
@@ -91,11 +89,11 @@ import static nats.io.nkeys.Common.*;
 public class NKey {
     private static boolean notValidPublicPrefixByte(int prefix) {
         switch (prefix) {
-            case PREFIX_BYTE_SERVER:
-            case PREFIX_BYTE_CLUSTER:
-            case PREFIX_BYTE_OPERATOR:
-            case PREFIX_BYTE_ACCOUNT:
-            case PREFIX_BYTE_USER:
+            case Common.PREFIX_BYTE_SERVER:
+            case Common.PREFIX_BYTE_CLUSTER:
+            case Common.PREFIX_BYTE_OPERATOR:
+            case Common.PREFIX_BYTE_ACCOUNT:
+            case Common.PREFIX_BYTE_USER:
                 return false;
         }
         return true;
@@ -123,23 +121,23 @@ public class NKey {
         bytes.write(type.prefix);
         bytes.write(src);
 
-        int crc = crc16(bytes.toByteArray());
+        int crc = Common.crc16(bytes.toByteArray());
         byte[] littleEndian = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort((short) crc).array();
 
         bytes.write(littleEndian);
 
-        char[] withPad = base32Encode(bytes.toByteArray());
+        char[] withPad = Common.base32Encode(bytes.toByteArray());
         return removePaddingAndClear(withPad);
     }
 
     static char[] encodeSeed(NKeyType type, byte[] src) throws IOException {
-        if (src.length != ED25519_PRIVATE_KEYSIZE && src.length != ED25519_SEED_SIZE) {
+        if (src.length != Common.ED25519_PRIVATE_KEYSIZE && src.length != Common.ED25519_SEED_SIZE) {
             throw new IllegalArgumentException("Source is not the correct size for an ED25519 seed");
         }
 
         // In order to make this human printable for both bytes, we need to do a little
         // bit manipulation to setup for base32 encoding which takes 5 bits at a time.
-        int b1 = PREFIX_BYTE_SEED | (type.prefix >> 5);
+        int b1 = Common.PREFIX_BYTE_SEED | (type.prefix >> 5);
         int b2 = (type.prefix & 31) << 3; // 31 = 00011111
 
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -148,17 +146,17 @@ public class NKey {
         bytes.write(b2);
         bytes.write(src);
 
-        int crc = crc16(bytes.toByteArray());
+        int crc = Common.crc16(bytes.toByteArray());
         byte[] littleEndian = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort((short) crc).array();
 
         bytes.write(littleEndian);
 
-        char[] withPad = base32Encode(bytes.toByteArray());
+        char[] withPad = Common.base32Encode(bytes.toByteArray());
         return removePaddingAndClear(withPad);
     }
 
     static byte[] decode(char[] src) {
-        byte[] raw = base32Decode(src);
+        byte[] raw = Common.base32Decode(src);
 
         if (raw.length < 4) {
             throw new IllegalArgumentException("Invalid encoding for source string");
@@ -168,7 +166,7 @@ public class NKey {
         byte[] dataBytes = Arrays.copyOfRange(raw, 0, raw.length - 2);
 
         int crc = ByteBuffer.wrap(crcBytes).order(ByteOrder.LITTLE_ENDIAN).getShort() & 0xFFFF;
-        int actual = crc16(dataBytes);
+        int actual = Common.crc16(dataBytes);
 
         if (actual != crc) {
             throw new IllegalArgumentException("CRC is invalid");
@@ -199,7 +197,7 @@ public class NKey {
         int b1 = raw[0] & 248; // 248 = 11111000
         int b2 = (raw[0] & 7) << 5 | ((raw[1] & 248) >> 3); // 7 = 00000111
 
-        if (b1 != PREFIX_BYTE_SEED) {
+        if (b1 != Common.PREFIX_BYTE_SEED) {
             throw new IllegalArgumentException("Invalid encoding");
         }
 
@@ -214,10 +212,10 @@ public class NKey {
     private static NKey createPair(NKeyType type, SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         if (random == null) {
-            random = SRAND;
+            random = Common.SRAND;
         }
 
-        byte[] seed = new byte[ED_25519.getCurve().getField().getb() / 8];
+        byte[] seed = new byte[Common.ED_25519.getCurve().getField().getb() / 8];
         random.nextBytes(seed);
 
         return createPair(type, seed);
@@ -225,9 +223,9 @@ public class NKey {
 
     private static NKey createPair(NKeyType type, byte[] seed)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
-        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(seed, ED_25519);
+        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(seed, Common.ED_25519);
         EdDSAPrivateKey privKey = new EdDSAPrivateKey(privKeySpec);
-        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(privKey.getA(), ED_25519);
+        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(privKey.getA(), Common.ED_25519);
         EdDSAPublicKey pubKey = new EdDSAPublicKey(pubKeySpec);
         byte[] pubBytes = pubKey.getAbyte();
 
@@ -339,7 +337,7 @@ public class NKey {
     public static NKey fromSeed(char[] seed) {
         DecodedSeed decoded = decodeSeed(seed); // Should throw on bad seed
 
-        if (decoded.bytes.length == ED25519_PRIVATE_KEYSIZE) {
+        if (decoded.bytes.length == Common.ED25519_PRIVATE_KEYSIZE) {
             return new NKey(NKeyType.fromPrefix(decoded.prefix), null, seed);
         } else {
             try {
@@ -416,13 +414,13 @@ public class NKey {
     public void clear() {
         if (privateKeyAsSeed != null) {
             for (int i=0; i< privateKeyAsSeed.length ; i++) {
-                privateKeyAsSeed[i] = (char)(PRAND.nextInt(26) + 'a');
+                privateKeyAsSeed[i] = (char)(Common.PRAND.nextInt(26) + 'a');
             }
             Arrays.fill(privateKeyAsSeed, '\0');
         }
         if (publicKey != null) {
             for (int i=0; i< publicKey.length ; i++) {
-                publicKey[i] = (char)(PRAND.nextInt(26) + 'a');
+                publicKey[i] = (char)(Common.PRAND.nextInt(26) + 'a');
             }
             Arrays.fill(publicKey, '\0');
         }
@@ -436,7 +434,7 @@ public class NKey {
             throw new IllegalStateException("Public-only NKey");
         }
         DecodedSeed decoded = decodeSeed(privateKeyAsSeed);
-        byte[] seedBytes = new byte[ED25519_SEED_SIZE];
+        byte[] seedBytes = new byte[Common.ED25519_SEED_SIZE];
         System.arraycopy(decoded.bytes, 0, seedBytes, 0, seedBytes.length);
         try {
             return encodeSeed(NKeyType.fromPrefix(decoded.prefix), seedBytes);
@@ -492,15 +490,15 @@ public class NKey {
         }
 
         DecodedSeed decoded = decodeSeed(privateKeyAsSeed);
-        byte[] seedBytes = new byte[ED25519_SEED_SIZE];
-        byte[] pubBytes = new byte[ED25519_PUBLIC_KEYSIZE];
+        byte[] seedBytes = new byte[Common.ED25519_SEED_SIZE];
+        byte[] pubBytes = new byte[Common.ED25519_PUBLIC_KEYSIZE];
 
         System.arraycopy(decoded.bytes, 0, seedBytes, 0, seedBytes.length);
         System.arraycopy(decoded.bytes, seedBytes.length, pubBytes, 0, pubBytes.length);
 
-        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(seedBytes, ED_25519);
+        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(seedBytes, Common.ED_25519);
         EdDSAPrivateKey privKey = new EdDSAPrivateKey(privKeySpec);
-        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(pubBytes, ED_25519);
+        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(pubBytes, Common.ED_25519);
         EdDSAPublicKey pubKey = new EdDSAPublicKey(pubKeySpec);
 
         return new KeyPair(pubKey, privKey);
@@ -523,7 +521,7 @@ public class NKey {
      * @throws IOException              if there is a problem reading the data
      */
     public byte[] sign(byte[] input) throws GeneralSecurityException, IOException {
-        Signature sgr = new EdDSAEngine(MessageDigest.getInstance(ED_25519.getHashAlgorithm()));
+        Signature sgr = new EdDSAEngine(MessageDigest.getInstance(Common.ED_25519.getHashAlgorithm()));
         PrivateKey sKey = getKeyPair().getPrivate();
 
         sgr.initSign(sKey);
@@ -543,7 +541,7 @@ public class NKey {
      * @throws IOException              if there is a problem reading the data
      */
     public boolean verify(byte[] input, byte[] signature) throws GeneralSecurityException, IOException {
-        Signature sgr = new EdDSAEngine(MessageDigest.getInstance(ED_25519.getHashAlgorithm()));
+        Signature sgr = new EdDSAEngine(MessageDigest.getInstance(Common.ED_25519.getHashAlgorithm()));
         PublicKey sKey = null;
 
         if (privateKeyAsSeed != null) {
@@ -551,7 +549,7 @@ public class NKey {
         } else {
             char[] encodedPublicKey = getPublicKey();
             byte[] decodedPublicKey = decode(this.type, encodedPublicKey, false);
-            EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(decodedPublicKey, ED_25519);
+            EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(decodedPublicKey, Common.ED_25519);
             sKey = new EdDSAPublicKey(pubKeySpec);
         }
 

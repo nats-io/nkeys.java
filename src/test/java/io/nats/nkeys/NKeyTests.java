@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package nats.io.nkeys;
+package io.nats.nkeys;
 
-import nats.io.ResourceUtils;
+import io.ResourceUtils;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -22,9 +22,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
-import static nats.io.ResourceUtils.resourceAsLines;
-import static nats.io.nkeys.Common.*;
-import static nats.io.nkeys.NKey.removePaddingAndClear;
+import static io.nats.nkeys.Common.*;
+import static io.nats.nkeys.NKey.removePaddingAndClear;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class NKeyTests {
@@ -69,7 +68,7 @@ public class NKeyTests {
 
     @Test
     public void testBase32() {
-        List<String> inputs = resourceAsLines("utf8-test-strings.txt");
+        List<String> inputs = ResourceUtils.resourceAsLines("utf8-test-strings.txt");
 
         for (String expected : inputs) {
             byte[] bytes = expected.getBytes(StandardCharsets.UTF_8);
