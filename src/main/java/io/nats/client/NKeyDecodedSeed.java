@@ -13,11 +13,11 @@
 
 package io.nats.client;
 
-class DecodedSeed {
+class NKeyDecodedSeed {
     public final int prefix;
     public final byte[] bytes;
 
-    public DecodedSeed(int prefix, byte[] bytes) {
+    public NKeyDecodedSeed(int prefix, byte[] bytes) {
         this.prefix = prefix;
         this.bytes = bytes;
     }

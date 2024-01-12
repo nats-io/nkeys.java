@@ -59,7 +59,7 @@ public class NKeyTests {
         for (int i = 0; i < inputs.length; i++) {
             byte[] input = inputs[i];
             int crc = expected[i];
-            int actual = Common.crc16(input);
+            int actual = NKeyUtils.crc16(input);
             assertEquals(crc, actual, String.format("CRC for \"%s\", should be 0x%08X but was 0x%08X", Arrays.toString(input), crc, actual));
         }
     }
@@ -70,16 +70,16 @@ public class NKeyTests {
 
         for (String expected : inputs) {
             byte[] bytes = expected.getBytes(StandardCharsets.UTF_8);
-            char[] encoded = Common.base32Encode(bytes);
-            byte[] decoded = Common.base32Decode(encoded);
+            char[] encoded = NKeyUtils.base32Encode(bytes);
+            byte[] decoded = NKeyUtils.base32Decode(encoded);
             String test = new String(decoded, StandardCharsets.UTF_8);
             assertEquals(test, expected);
         }
 
         // bad input for coverage
-        byte[] decoded = Common.base32Decode("/".toCharArray());
+        byte[] decoded = NKeyUtils.base32Decode("/".toCharArray());
         assertEquals(0, decoded.length);
-        decoded = Common.base32Decode(Character.toChars(512));
+        decoded = NKeyUtils.base32Decode(Character.toChars(512));
         assertEquals(0, decoded.length);
     }
 
@@ -89,10 +89,10 @@ public class NKeyTests {
         SecureRandom random = new SecureRandom();
         random.nextBytes(bytes);
 
-        char[] encoded = NKey.encodeSeed(NKeyType.ACCOUNT, bytes);
-        DecodedSeed decoded = NKey.decodeSeed(encoded);
+        char[] encoded = NKey.encodeSeed(NKey.Type.ACCOUNT, bytes);
+        NKeyDecodedSeed decoded = NKey.decodeSeed(encoded);
 
-        assertEquals(NKeyType.fromPrefix(decoded.prefix), NKeyType.ACCOUNT);
+        assertEquals(NKey.Type.fromPrefix(decoded.prefix), NKey.Type.ACCOUNT);
         assertArrayEquals(bytes, decoded.bytes);
     }
 
@@ -102,20 +102,20 @@ public class NKeyTests {
         SecureRandom random = new SecureRandom();
         random.nextBytes(bytes);
 
-        char[] encoded = NKey.encode(NKeyType.ACCOUNT, bytes);
-        byte[] decoded = NKey.decode(NKeyType.ACCOUNT, encoded, false);
+        char[] encoded = NKey.encode(NKey.Type.ACCOUNT, bytes);
+        byte[] decoded = NKey.decode(NKey.Type.ACCOUNT, encoded, false);
         assertArrayEquals(bytes, decoded);
 
-        encoded = NKey.encode(NKeyType.USER, bytes);
-        decoded = NKey.decode(NKeyType.USER, encoded, false);
+        encoded = NKey.encode(NKey.Type.USER, bytes);
+        decoded = NKey.decode(NKey.Type.USER, encoded, false);
         assertArrayEquals(bytes, decoded);
 
-        encoded = NKey.encode(NKeyType.SERVER, bytes);
-        decoded = NKey.decode(NKeyType.SERVER, encoded, false);
+        encoded = NKey.encode(NKey.Type.SERVER, bytes);
+        decoded = NKey.decode(NKey.Type.SERVER, encoded, false);
         assertArrayEquals(bytes, decoded);
 
-        encoded = NKey.encode(NKeyType.CLUSTER, bytes);
-        decoded = NKey.decode(NKeyType.CLUSTER, encoded, false);
+        encoded = NKey.encode(NKey.Type.CLUSTER, bytes);
+        decoded = NKey.decode(NKey.Type.CLUSTER, encoded, false);
         assertArrayEquals(bytes, decoded);
     }
 
@@ -126,8 +126,8 @@ public class NKeyTests {
             SecureRandom random = new SecureRandom();
             random.nextBytes(bytes);
 
-            char[] encoded = NKey.encode(NKeyType.ACCOUNT, bytes);
-            NKey.decode(NKeyType.USER, encoded, false);
+            char[] encoded = NKey.encode(NKey.Type.ACCOUNT, bytes);
+            NKey.decode(NKey.Type.USER, encoded, false);
         });
     }
 
@@ -138,13 +138,13 @@ public class NKeyTests {
             SecureRandom random = new SecureRandom();
             random.nextBytes(bytes);
 
-            NKey.encodeSeed(NKeyType.ACCOUNT, bytes);
+            NKey.encodeSeed(NKey.Type.ACCOUNT, bytes);
         });
     }
 
     @Test
     public void testDecodeSize() {
-        assertThrows(IllegalArgumentException.class, () -> NKey.decode(NKeyType.ACCOUNT, "".toCharArray(), false));
+        assertThrows(IllegalArgumentException.class, () -> NKey.decode(NKey.Type.ACCOUNT, "".toCharArray(), false));
     }
 
     @Test
@@ -155,7 +155,7 @@ public class NKeyTests {
                 SecureRandom random = new SecureRandom();
                 random.nextBytes(bytes);
 
-                char[] encoded = NKey.encode(NKeyType.ACCOUNT, bytes);
+                char[] encoded = NKey.encode(NKey.Type.ACCOUNT, bytes);
 
                 StringBuilder builder = new StringBuilder();
                 for (int j = 0; j < encoded.length; j++) {
@@ -171,7 +171,7 @@ public class NKeyTests {
                     }
                 }
 
-                NKey.decode(NKeyType.ACCOUNT, builder.toString().toCharArray(), false);
+                NKey.decode(NKey.Type.ACCOUNT, builder.toString().toCharArray(), false);
                 fail();
             } catch (IllegalArgumentException e) {
                 //expected
@@ -512,7 +512,7 @@ public class NKeyTests {
         NKey fromSeed = NKey.fromSeed(seed);
         NKey fromPublicKey = NKey.fromPublicKey(publicKey);
 
-        assertEquals(fromSeed.getType(), NKeyType.USER);
+        assertEquals(fromSeed.getType(), NKey.Type.USER);
 
         byte[] nonceData = Base64.getUrlDecoder().decode(nonce);
         byte[] nonceSig = Base64.getUrlDecoder().decode(nonceEncodedSig);
@@ -544,20 +544,20 @@ public class NKeyTests {
         assertArrayEquals(fromSeed.getPublicKey(), publicKey);
         assertArrayEquals(fromSeed.getPrivateKey(), privateKey);
 
-        DecodedSeed decoded = NKey.decodeSeed(seed);
-        char[] encodedSeed = NKey.encodeSeed(NKeyType.fromPrefix(decoded.prefix), decoded.bytes);
+        NKeyDecodedSeed decoded = NKey.decodeSeed(seed);
+        char[] encodedSeed = NKey.encodeSeed(NKey.Type.fromPrefix(decoded.prefix), decoded.bytes);
         assertArrayEquals(encodedSeed, seed);
     }
 
     @Test
     public void testTypeEnum() {
-        assertEquals(NKeyType.USER, NKeyType.fromPrefix(Common.PREFIX_BYTE_USER));
-        assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(Common.PREFIX_BYTE_ACCOUNT));
-        assertEquals(NKeyType.SERVER, NKeyType.fromPrefix(Common.PREFIX_BYTE_SERVER));
-        assertEquals(NKeyType.OPERATOR, NKeyType.fromPrefix(Common.PREFIX_BYTE_OPERATOR));
-        assertEquals(NKeyType.CLUSTER, NKeyType.fromPrefix(Common.PREFIX_BYTE_CLUSTER));
-        assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(Common.PREFIX_BYTE_PRIVATE));
-        assertThrows(IllegalArgumentException.class, () -> { NKeyType ignored = NKeyType.fromPrefix(9999); });
+        assertEquals(NKey.Type.USER, NKey.Type.fromPrefix(NKeyUtils.PREFIX_BYTE_USER));
+        assertEquals(NKey.Type.ACCOUNT, NKey.Type.fromPrefix(NKeyUtils.PREFIX_BYTE_ACCOUNT));
+        assertEquals(NKey.Type.SERVER, NKey.Type.fromPrefix(NKeyUtils.PREFIX_BYTE_SERVER));
+        assertEquals(NKey.Type.OPERATOR, NKey.Type.fromPrefix(NKeyUtils.PREFIX_BYTE_OPERATOR));
+        assertEquals(NKey.Type.CLUSTER, NKey.Type.fromPrefix(NKeyUtils.PREFIX_BYTE_CLUSTER));
+        assertEquals(NKey.Type.ACCOUNT, NKey.Type.fromPrefix(NKeyUtils.PREFIX_BYTE_PRIVATE));
+        assertThrows(IllegalArgumentException.class, () -> { NKey.Type ignored = NKey.Type.fromPrefix(9999); });
     }
 
     @Test
