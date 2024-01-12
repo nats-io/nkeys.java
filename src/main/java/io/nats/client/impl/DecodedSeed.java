@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package io.nats.nkeys;
+package io.nats.client.impl;
 
 class DecodedSeed {
     public final int prefix;

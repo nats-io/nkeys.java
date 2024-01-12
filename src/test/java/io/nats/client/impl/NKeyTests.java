@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package io.nats.nkeys;
+package io.nats.client.impl;
 
 import io.ResourceUtils;
 import org.junit.jupiter.api.Test;
@@ -22,8 +22,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
-import static io.nats.nkeys.Common.*;
-import static io.nats.nkeys.NKey.removePaddingAndClear;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class NKeyTests {
@@ -61,7 +59,7 @@ public class NKeyTests {
         for (int i = 0; i < inputs.length; i++) {
             byte[] input = inputs[i];
             int crc = expected[i];
-            int actual = crc16(input);
+            int actual = Common.crc16(input);
             assertEquals(crc, actual, String.format("CRC for \"%s\", should be 0x%08X but was 0x%08X", Arrays.toString(input), crc, actual));
         }
     }
@@ -72,16 +70,16 @@ public class NKeyTests {
 
         for (String expected : inputs) {
             byte[] bytes = expected.getBytes(StandardCharsets.UTF_8);
-            char[] encoded = base32Encode(bytes);
-            byte[] decoded = base32Decode(encoded);
+            char[] encoded = Common.base32Encode(bytes);
+            byte[] decoded = Common.base32Decode(encoded);
             String test = new String(decoded, StandardCharsets.UTF_8);
             assertEquals(test, expected);
         }
 
         // bad input for coverage
-        byte[] decoded = base32Decode("/".toCharArray());
+        byte[] decoded = Common.base32Decode("/".toCharArray());
         assertEquals(0, decoded.length);
-        decoded = base32Decode(Character.toChars(512));
+        decoded = Common.base32Decode(Character.toChars(512));
         assertEquals(0, decoded.length);
     }
 
@@ -553,24 +551,24 @@ public class NKeyTests {
 
     @Test
     public void testTypeEnum() {
-        assertEquals(NKeyType.USER, NKeyType.fromPrefix(PREFIX_BYTE_USER));
-        assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(PREFIX_BYTE_ACCOUNT));
-        assertEquals(NKeyType.SERVER, NKeyType.fromPrefix(PREFIX_BYTE_SERVER));
-        assertEquals(NKeyType.OPERATOR, NKeyType.fromPrefix(PREFIX_BYTE_OPERATOR));
-        assertEquals(NKeyType.CLUSTER, NKeyType.fromPrefix(PREFIX_BYTE_CLUSTER));
-        assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(PREFIX_BYTE_PRIVATE));
+        assertEquals(NKeyType.USER, NKeyType.fromPrefix(Common.PREFIX_BYTE_USER));
+        assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(Common.PREFIX_BYTE_ACCOUNT));
+        assertEquals(NKeyType.SERVER, NKeyType.fromPrefix(Common.PREFIX_BYTE_SERVER));
+        assertEquals(NKeyType.OPERATOR, NKeyType.fromPrefix(Common.PREFIX_BYTE_OPERATOR));
+        assertEquals(NKeyType.CLUSTER, NKeyType.fromPrefix(Common.PREFIX_BYTE_CLUSTER));
+        assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(Common.PREFIX_BYTE_PRIVATE));
         assertThrows(IllegalArgumentException.class, () -> { NKeyType ignored = NKeyType.fromPrefix(9999); });
     }
 
     @Test
     public void testRemovePaddingAndClear() {
         char[] withPad = "!".toCharArray();
-        char[] removed = removePaddingAndClear(withPad);
+        char[] removed = NKey.removePaddingAndClear(withPad);
         assertEquals(withPad.length, removed.length);
         assertEquals('!', removed[0]);
 
         withPad = "a=".toCharArray();
-        removed = removePaddingAndClear(withPad);
+        removed = NKey.removePaddingAndClear(withPad);
         assertEquals(1, removed.length);
         assertEquals('a', removed[0]);
     }
