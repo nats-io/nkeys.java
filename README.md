@@ -15,7 +15,7 @@ The library allows you to create and use NKEYS in Java code.
 
 # Overview
 
-The NATS ecosystem will be moving to Ed25519 keys for identity,
+The NATS uses Ed25519 keys for identity,
 authentication and authorization for entities such as Accounts, Users,
 Servers and Clusters.
 
