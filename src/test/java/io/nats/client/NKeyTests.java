@@ -69,11 +69,12 @@ public class NKeyTests {
         List<String> inputs = ResourceUtils.resourceAsLines("utf8-test-strings.txt");
 
         for (String expected : inputs) {
-            byte[] bytes = expected.getBytes(StandardCharsets.UTF_8);
-            char[] encoded = NKeyUtils.base32Encode(bytes);
+            byte[] expectedBytes = expected.getBytes(StandardCharsets.UTF_8);
+            char[] encoded = NKeyUtils.base32Encode(expectedBytes);
             byte[] decoded = NKeyUtils.base32Decode(encoded);
+            assertArrayEquals(expectedBytes, decoded);
             String test = new String(decoded, StandardCharsets.UTF_8);
-            assertEquals(test, expected);
+            assertEquals(expected, test);
         }
 
         // bad input for coverage

@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Random;
 
 public abstract class NKeyUtils {
+    private NKeyUtils() {} /* ensures cannot be constructed */
+
     // PrefixByteSeed is the prefix byte used for encoded NATS Seeds
     public static final int PREFIX_BYTE_SEED = 18 << 3; // Base32-encodes to 'S...'
 
