@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package io.nats.client;
+package io.nats.nkey;
 
 class NKeyDecodedSeed {
     public final int prefix;
