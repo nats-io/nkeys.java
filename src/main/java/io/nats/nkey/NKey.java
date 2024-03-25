@@ -13,21 +13,42 @@
 
 package io.nats.nkey;
 
-import net.i2p.crypto.eddsa.EdDSAEngine;
-import net.i2p.crypto.eddsa.EdDSAPrivateKey;
-import net.i2p.crypto.eddsa.EdDSAPublicKey;
-import net.i2p.crypto.eddsa.spec.EdDSAPrivateKeySpec;
-import net.i2p.crypto.eddsa.spec.EdDSAPublicKeySpec;
+import static io.nats.nkey.NKeyConstants.ED25519_PRIVATE_KEYSIZE;
+import static io.nats.nkey.NKeyConstants.ED25519_PUBLIC_KEYSIZE;
+import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
+import static io.nats.nkey.NKeyConstants.ED_25519;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_ACCOUNT;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_CLUSTER;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_OPERATOR;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_SEED;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_SERVER;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_USER;
+import static io.nats.nkey.NKeyUtils.PRAND;
+import static io.nats.nkey.NKeyUtils.SRAND;
+import static io.nats.nkey.NKeyUtils.base32Decode;
+import static io.nats.nkey.NKeyUtils.base32Encode;
+import static io.nats.nkey.NKeyUtils.crc16;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Signature;
 import java.util.Arrays;
 
-import static io.nats.nkey.NKeyConstants.*;
-import static io.nats.nkey.NKeyUtils.*;
+import net.i2p.crypto.eddsa.EdDSAEngine;
+import net.i2p.crypto.eddsa.EdDSAPrivateKey;
+import net.i2p.crypto.eddsa.EdDSAPublicKey;
+import net.i2p.crypto.eddsa.spec.EdDSAPrivateKeySpec;
+import net.i2p.crypto.eddsa.spec.EdDSAPublicKeySpec;
 
 public class NKey {
 
@@ -59,7 +80,7 @@ public class NKey {
         return withoutPad;
     }
 
-    static char[] encode(NkeyType type, byte[] src) throws IOException {
+    static char[] encode(NKeyType type, byte[] src) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
         bytes.write(type.prefix);
@@ -74,7 +95,7 @@ public class NKey {
         return removePaddingAndClear(withPad);
     }
 
-    static char[] encodeSeed(NkeyType type, byte[] src) throws IOException {
+    static char[] encodeSeed(NKeyType type, byte[] src) throws IOException {
         if (src.length != ED25519_PRIVATE_KEYSIZE && src.length != ED25519_SEED_SIZE) {
             throw new IllegalArgumentException("Source is not the correct size for an ED25519 seed");
         }
@@ -119,10 +140,10 @@ public class NKey {
         return dataBytes;
     }
 
-    static byte[] decode(NkeyType expectedType, char[] src) {
+    static byte[] decode(NKeyType expectedType, char[] src) {
         byte[] raw = decode(src);
         byte[] dataBytes = Arrays.copyOfRange(raw, 1, raw.length);
-        NkeyType type = NkeyType.fromPrefix(raw[0] & 0xFF);
+        NKeyType type = NKeyType.fromPrefix(raw[0] & 0xFF);
 
         if (type != expectedType) {
             return null;
@@ -150,7 +171,7 @@ public class NKey {
         return new NKeyDecodedSeed(b2, dataBytes);
     }
 
-    private static NKey createPair(NkeyType type, SecureRandom random)
+    private static NKey createPair(NKeyType type, SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         if (random == null) {
             random = SRAND;
@@ -162,7 +183,7 @@ public class NKey {
         return createPair(type, seed);
     }
 
-    private static NKey createPair(NkeyType type, byte[] seed)
+    private static NKey createPair(NKeyType type, byte[] seed)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(seed, ED_25519);
         EdDSAPrivateKey privKey = new EdDSAPrivateKey(privKeySpec);
@@ -190,7 +211,7 @@ public class NKey {
      */
     public static NKey createAccount(SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
-        return createPair(NkeyType.ACCOUNT, random);
+        return createPair(NKeyType.ACCOUNT, random);
     }
 
     /**
@@ -205,7 +226,7 @@ public class NKey {
      */
     public static NKey createCluster(SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
-        return createPair(NkeyType.CLUSTER, random);
+        return createPair(NKeyType.CLUSTER, random);
     }
 
     /**
@@ -220,7 +241,7 @@ public class NKey {
      */
     public static NKey createOperator(SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
-        return createPair(NkeyType.OPERATOR, random);
+        return createPair(NKeyType.OPERATOR, random);
     }
 
     /**
@@ -235,7 +256,7 @@ public class NKey {
      */
     public static NKey createServer(SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
-        return createPair(NkeyType.SERVER, random);
+        return createPair(NKeyType.SERVER, random);
     }
 
     /**
@@ -250,7 +271,7 @@ public class NKey {
      */
     public static NKey createUser(SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
-        return createPair(NkeyType.USER, random);
+        return createPair(NKeyType.USER, random);
     }
 
     /**
@@ -266,7 +287,7 @@ public class NKey {
             throw new IllegalArgumentException("Not a valid public NKey");
         }
 
-        NkeyType type = NkeyType.fromPrefix(prefix);
+        NKeyType type = NKeyType.fromPrefix(prefix);
         return new NKey(type, publicKey, null);
     }
 
@@ -279,10 +300,10 @@ public class NKey {
         NKeyDecodedSeed decoded = decodeSeed(seed); // Should throw on bad seed
 
         if (decoded.bytes.length == ED25519_PRIVATE_KEYSIZE) {
-            return new NKey(NkeyType.fromPrefix(decoded.prefix), null, seed);
+            return new NKey(NKeyType.fromPrefix(decoded.prefix), null, seed);
         } else {
             try {
-                return createPair(NkeyType.fromPrefix(decoded.prefix), decoded.bytes);
+                return createPair(NKeyType.fromPrefix(decoded.prefix), decoded.bytes);
             } catch (Exception e) {
                 throw new IllegalArgumentException("Bad seed value", e);
             }
@@ -294,7 +315,7 @@ public class NKey {
      * @return true if the public key is an account public key
      */
     public static boolean isValidPublicAccountKey(char[] src) {
-        return decode(NkeyType.ACCOUNT, src) != null;
+        return decode(NKeyType.ACCOUNT, src) != null;
     }
 
     /**
@@ -302,7 +323,7 @@ public class NKey {
      * @return true if the public key is a cluster public key
      */
     public static boolean isValidPublicClusterKey(char[] src) {
-        return decode(NkeyType.CLUSTER, src) != null;
+        return decode(NKeyType.CLUSTER, src) != null;
     }
 
     /**
@@ -310,7 +331,7 @@ public class NKey {
      * @return true if the public key is an operator public key
      */
     public static boolean isValidPublicOperatorKey(char[] src) {
-        return decode(NkeyType.OPERATOR, src) != null;
+        return decode(NKeyType.OPERATOR, src) != null;
     }
 
     /**
@@ -318,7 +339,7 @@ public class NKey {
      * @return true if the public key is a server public key
      */
     public static boolean isValidPublicServerKey(char[] src) {
-        return decode(NkeyType.SERVER, src) != null;
+        return decode(NKeyType.SERVER, src) != null;
     }
 
     /**
@@ -326,7 +347,7 @@ public class NKey {
      * @return true if the public key is a user public key
      */
     public static boolean isValidPublicUserKey(char[] src) {
-        return decode(NkeyType.USER, src) != null;
+        return decode(NKeyType.USER, src) != null;
     }
 
     /**
@@ -339,9 +360,9 @@ public class NKey {
      */
     private final char[] publicKey;
 
-    private final NkeyType type;
+    private final NKeyType type;
 
-    private NKey(NkeyType t, char[] publicKey, char[] privateKey) {
+    private NKey(NKeyType t, char[] publicKey, char[] privateKey) {
         this.type = t;
         this.privateKeyAsSeed = privateKey;
         this.publicKey = publicKey;
@@ -378,7 +399,7 @@ public class NKey {
         byte[] seedBytes = new byte[ED25519_SEED_SIZE];
         System.arraycopy(decoded.bytes, 0, seedBytes, 0, seedBytes.length);
         try {
-            return encodeSeed(NkeyType.fromPrefix(decoded.prefix), seedBytes);
+            return encodeSeed(NKeyType.fromPrefix(decoded.prefix), seedBytes);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to create seed.", e);
         }
@@ -415,7 +436,7 @@ public class NKey {
         }
 
         NKeyDecodedSeed decoded = decodeSeed(privateKeyAsSeed);
-        return encode(NkeyType.PRIVATE, decoded.bytes);
+        return encode(NKeyType.PRIVATE, decoded.bytes);
     }
 
     /**
@@ -448,7 +469,7 @@ public class NKey {
     /**
      * @return the Type of this NKey
      */
-    public NkeyType getType() {
+    public NKeyType getType() {
         return type;
     }
 
