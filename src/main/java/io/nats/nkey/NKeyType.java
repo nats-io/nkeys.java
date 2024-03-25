@@ -13,14 +13,19 @@
 
 package io.nats.nkey;
 
-import static io.nats.nkey.NKeyConstants.*;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_ACCOUNT;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_CLUSTER;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_OPERATOR;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_PRIVATE;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_SERVER;
+import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_USER;
 
 /**
  * NKeys use a prefix byte to indicate their intended owner: 'N' = server, 'C' =
  * cluster, 'A' = account, and 'U' = user. 'P' is used for private keys. The
  * NKey class formalizes these into the enum Type.
  */
-public enum NkeyType {
+public enum NKeyType {
     /**
      * A user NKey.
      */
@@ -48,11 +53,11 @@ public enum NkeyType {
 
     public final int prefix;
 
-    NkeyType(int prefix) {
+    NKeyType(int prefix) {
         this.prefix = prefix;
     }
 
-    public static NkeyType fromPrefix(int prefix) {
+    public static NKeyType fromPrefix(int prefix) {
         switch (prefix) {
             case PREFIX_BYTE_ACCOUNT:
             case PREFIX_BYTE_PRIVATE:  return ACCOUNT;
