@@ -11,7 +11,7 @@ plugins {
     id 'signing'
 }
 
-def jarVersion = "2.0.2"
+def jarVersion = "2.1.0"
 group = 'io.nats'
 
 def isMerge = System.getenv("BUILD_EVENT") == "push"
@@ -31,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.i2p.crypto:eddsa:0.3.0'
+    implementation 'org.bouncycastle:bcprov-lts8on:2.73.7'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
     testImplementation 'com.github.stefanbirkner:system-lambda:1.2.1'
