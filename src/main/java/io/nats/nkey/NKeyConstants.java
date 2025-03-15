@@ -13,9 +13,6 @@
 
 package io.nats.nkey;
 
-import net.i2p.crypto.eddsa.spec.EdDSANamedCurveSpec;
-import net.i2p.crypto.eddsa.spec.EdDSANamedCurveTable;
-
 public interface NKeyConstants {
     // PrefixByteSeed is the prefix byte used for encoded NATS Seeds
     int PREFIX_BYTE_SEED = 18 << 3; // Base32-encodes to 'S...'
@@ -41,8 +38,6 @@ public interface NKeyConstants {
     int ED25519_PUBLIC_KEYSIZE = 32;
     int ED25519_PRIVATE_KEYSIZE = 64;
     int ED25519_SEED_SIZE = 32;
-
-    EdDSANamedCurveSpec ED_25519 = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519);
 
     // XModem CRC based on the go version of NKeys
     int[] CRC_16_TABLE = { 0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, 0x8108,

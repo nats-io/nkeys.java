@@ -1,4 +1,4 @@
-// Copyright 2020-2024 The NATS Authors
+// Copyright 2020-2025 The NATS Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at:
@@ -13,42 +13,19 @@
 
 package io.nats.nkey;
 
-import static io.nats.nkey.NKeyConstants.ED25519_PRIVATE_KEYSIZE;
-import static io.nats.nkey.NKeyConstants.ED25519_PUBLIC_KEYSIZE;
-import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
-import static io.nats.nkey.NKeyConstants.ED_25519;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_ACCOUNT;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_CLUSTER;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_OPERATOR;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_SEED;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_SERVER;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_USER;
-import static io.nats.nkey.NKeyUtils.PRAND;
-import static io.nats.nkey.NKeyUtils.SRAND;
-import static io.nats.nkey.NKeyUtils.base32Decode;
-import static io.nats.nkey.NKeyUtils.base32Encode;
-import static io.nats.nkey.NKeyUtils.crc16;
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.signers.Ed25519Signer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.Signature;
+import java.security.*;
 import java.util.Arrays;
 
-import net.i2p.crypto.eddsa.EdDSAEngine;
-import net.i2p.crypto.eddsa.EdDSAPrivateKey;
-import net.i2p.crypto.eddsa.EdDSAPublicKey;
-import net.i2p.crypto.eddsa.spec.EdDSAPrivateKeySpec;
-import net.i2p.crypto.eddsa.spec.EdDSAPublicKeySpec;
+import static io.nats.nkey.NKeyConstants.*;
+import static io.nats.nkey.NKeyUtils.*;
 
 public class NKey {
 
@@ -173,23 +150,21 @@ public class NKey {
 
     private static NKey createPair(NKeyType type, SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
+        byte[] seed = new byte[ED25519_SEED_SIZE];
         if (random == null) {
-            random = SRAND;
+            SRAND.nextBytes(seed);
         }
-
-        byte[] seed = new byte[ED_25519.getCurve().getField().getb() / 8];
-        random.nextBytes(seed);
-
+        else {
+            random.nextBytes(seed);
+        }
         return createPair(type, seed);
     }
 
-    private static NKey createPair(NKeyType type, byte[] seed)
-        throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
-        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(seed, ED_25519);
-        EdDSAPrivateKey privKey = new EdDSAPrivateKey(privKeySpec);
-        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(privKey.getA(), ED_25519);
-        EdDSAPublicKey pubKey = new EdDSAPublicKey(pubKeySpec);
-        byte[] pubBytes = pubKey.getAbyte();
+    private static NKey createPair(NKeyType type, byte[] seed) throws IOException {
+        Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(seed);
+        Ed25519PublicKeyParameters publicKey = privateKey.generatePublicKey();
+
+        byte[] pubBytes = publicKey.getEncoded();
 
         byte[] bytes = new byte[pubBytes.length + seed.length];
         System.arraycopy(seed, 0, bytes, 0, seed.length);
@@ -416,12 +391,7 @@ public class NKey {
         if (publicKey != null) {
             return publicKey;
         }
-
-        KeyPair keys = getKeyPair();
-        EdDSAPublicKey pubKey = (EdDSAPublicKey) keys.getPublic();
-        byte[] pubBytes = pubKey.getAbyte();
-
-        return encode(this.type, pubBytes);
+        return encode(this.type, getKeyPair().getPublic().getEncoded());
     }
 
     /**
@@ -458,12 +428,10 @@ public class NKey {
         System.arraycopy(decoded.bytes, 0, seedBytes, 0, seedBytes.length);
         System.arraycopy(decoded.bytes, seedBytes.length, pubBytes, 0, pubBytes.length);
 
-        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(seedBytes, ED_25519);
-        EdDSAPrivateKey privKey = new EdDSAPrivateKey(privKeySpec);
-        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(pubBytes, ED_25519);
-        EdDSAPublicKey pubKey = new EdDSAPublicKey(pubKeySpec);
+        Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(seedBytes);
+        Ed25519PublicKeyParameters publicKey = new Ed25519PublicKeyParameters(pubBytes);
 
-        return new KeyPair(pubKey, privKey);
+        return new KeyPair(new PublicKeyWrapper(publicKey), new PrivateKeyWrapper(privateKey));
     }
 
     /**
@@ -483,13 +451,11 @@ public class NKey {
      * @throws IOException              if there is a problem reading the data
      */
     public byte[] sign(byte[] input) throws GeneralSecurityException, IOException {
-        Signature sgr = new EdDSAEngine(MessageDigest.getInstance(ED_25519.getHashAlgorithm()));
-        PrivateKey sKey = getKeyPair().getPrivate();
-
-        sgr.initSign(sKey);
-        sgr.update(input);
-
-        return sgr.sign();
+        Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(getKeyPair().getPrivate().getEncoded());
+        Ed25519Signer signer = new Ed25519Signer();
+        signer.init(true, privateKey);
+        signer.update(input, 0, input.length);
+        return signer.generateSignature();
     }
 
     /**
@@ -503,26 +469,20 @@ public class NKey {
      * @throws IOException              if there is a problem reading the data
      */
     public boolean verify(byte[] input, byte[] signature) throws GeneralSecurityException, IOException {
-        Signature sgr = new EdDSAEngine(MessageDigest.getInstance(ED_25519.getHashAlgorithm()));
-        PublicKey sKey;
-
+        Ed25519PublicKeyParameters publicKey;
         if (privateKeyAsSeed != null) {
-            sKey = getKeyPair().getPublic();
-        }
-        else {
+            publicKey = new Ed25519PublicKeyParameters(getKeyPair().getPublic().getEncoded());
+        } else {
             char[] encodedPublicKey = getPublicKey();
             byte[] decodedPublicKey = decode(this.type, encodedPublicKey);
-            if (decodedPublicKey == null) {
-                throw new IllegalArgumentException("Unexpected type");
-            }
-            EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(decodedPublicKey, ED_25519);
-            sKey = new EdDSAPublicKey(pubKeySpec);
+            //noinspection DataFlowIssue // decode will throw instead of return null
+            publicKey = new Ed25519PublicKeyParameters(decodedPublicKey);
         }
 
-        sgr.initVerify(sKey);
-        sgr.update(input);
-
-        return sgr.verify(signature);
+        Ed25519Signer signer = new Ed25519Signer();
+        signer.init(false, publicKey);
+        signer.update(input, 0, input.length);
+        return signer.verifySignature(signature);
     }
 
     @Override
@@ -559,3 +519,4 @@ public class NKey {
         return result;
     }
 }
+
