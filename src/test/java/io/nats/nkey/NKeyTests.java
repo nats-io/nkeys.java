@@ -13,25 +13,8 @@
 
 package io.nats.nkey;
 
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_ACCOUNT;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_CLUSTER;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_OPERATOR;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_PRIVATE;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_SERVER;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_USER;
-import static io.nats.nkey.NKeyUtils.SRAND;
-import static io.nats.nkey.NKeyUtils.base32Decode;
-import static io.nats.nkey.NKeyUtils.base32Encode;
-import static io.nats.nkey.NKeyUtils.crc16;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import io.ResourceUtils;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,9 +24,9 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-
-import io.ResourceUtils;
+import static io.nats.nkey.NKeyConstants.*;
+import static io.nats.nkey.NKeyUtils.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class NKeyTests {
     private static final int ED25519_SIGNATURE_SIZE = 64;

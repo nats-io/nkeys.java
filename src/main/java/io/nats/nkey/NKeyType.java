@@ -13,12 +13,7 @@
 
 package io.nats.nkey;
 
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_ACCOUNT;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_CLUSTER;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_OPERATOR;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_PRIVATE;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_SERVER;
-import static io.nats.nkey.NKeyConstants.PREFIX_BYTE_USER;
+import static io.nats.nkey.NKeyConstants.*;
 
 /**
  * NKeys use a prefix byte to indicate their intended owner: 'N' = server, 'C' =
