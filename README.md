@@ -4,7 +4,7 @@
 
 The library allows you to create and use NKEYS in Java code.
 
-**Current Release**: 2.1.0 &nbsp; **Current Snapshot**: 2.1.1-SNAPSHOT
+**Current Release**: 2.1.1 &nbsp; **Current Snapshot**: 2.1.2-SNAPSHOT
 
 [![License Apache 2](https://img.shields.io/badge/License-Apache2-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.nats/nkeys-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.nats/nkeys-java)
