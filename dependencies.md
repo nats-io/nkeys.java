@@ -4,21 +4,21 @@ This file lists the dependencies used in this repository.
 
 #### Runtime Dependencies
 
-None
+| Dependency                            | License     |
+|---------------------------------------|-------------|
+| org.bouncycastle:bcprov-lts8on:2.73.7 | MIT License |
 
 #### Test Dependencies
 
 | Dependency                                      | License                                 |
 |-------------------------------------------------|-----------------------------------------|
-| org.apiguardian:apiguardian-api:1.1.0           | Apache 2.0 License                      |
 | org.junit.jupiter:junit-jupiter-api:5.7.0       | Apache 2.0 License                      |
 | org.junit.jupiter:junit-jupiter-engine:5.7.0    | Apache 2.0 License                      |
 | org.junit.jupiter:junit-jupiter-params:5.7.0    | Apache 2.0 License                      |
 | org.junit.jupiter:junit-jupiter:5.7.0           | Apache 2.0 License                      |
 | org.junit.platform:junit-platform-commons:1.7.0 | Apache 2.0 License                      |
 | org.junit.platform:junit-platform-engine:1.7.0  | Apache 2.0 License                      |
-| org.junit:junit-bom:5.7.0                       | Apache 2.0 License                      |
-| org.opentest4j:opentest4j:1.2.0                 | Apache 2.0 License                      |
+| nl.jqno.equalsverifier:equalsverifier:3.12.3    | Apache 2.0 License                      |
 
 #### Build / Coverage Dependencies
 
