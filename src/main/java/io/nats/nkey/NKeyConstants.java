@@ -14,6 +14,8 @@
 package io.nats.nkey;
 
 public interface NKeyConstants {
+    String CRYPTO_ALGORITHM = "Ed25519";
+
     // PrefixByteSeed is the prefix byte used for encoded NATS Seeds
     int PREFIX_BYTE_SEED = 18 << 3; // Base32-encodes to 'S...'
 
