@@ -152,7 +152,7 @@ public class NKey {
     }
 
     private static @Nullable Provider getSecurityProvider() {
-        String property = System.getProperty("io.nats.nkey.security.provider");
+        String property = System.getProperty(SECURITY_PROVIDER_PROPERTY);
         if (property == null) {
             // Instantiating the BouncyCastle provider to maintain backwards compatibility
             return DefaultSecurityProviderFactory.getProvider();
