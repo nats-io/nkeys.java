@@ -156,12 +156,12 @@ public class NKey {
         if (property == null) {
             // Instantiating the BouncyCastle provider to maintain backwards compatibility
             return DefaultSecurityProviderFactory.getProvider();
-        } else if (property.isEmpty()) {
+        }
+        if (property.isEmpty()) {
             // Use whatever is configured as the default in the JVM
             return null;
-        } else {
-            return Security.getProvider(property);
         }
+        return Security.getProvider(property);
     }
 
     private static NKey createPair(NKeyType type, @Nullable SecureRandom random)
