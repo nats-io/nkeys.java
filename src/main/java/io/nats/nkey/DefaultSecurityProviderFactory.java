@@ -13,17 +13,16 @@
 
 package io.nats.nkey;
 
-import java.security.Key;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-abstract class KeyWrapper implements Key {
+import java.security.Provider;
 
-    @Override
-    public String getAlgorithm() {
-        return "EdDSA";
-    }
-
-    @Override
-    public String getFormat() {
-        return "PKCS#8";
+/**
+ * Wraps construction of {@link BouncyCastleProvider} class to defer loading of the class.
+ * That allows users to exclude the BouncyCastle dependency if they want to use another provider.
+ */
+class DefaultSecurityProviderFactory {
+    static Provider getProvider() {
+        return new BouncyCastleProvider();
     }
 }

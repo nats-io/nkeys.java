@@ -13,20 +13,23 @@
 
 package io.nats.nkey;
 
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.crypto.signers.Ed25519Signer;
+import org.bouncycastle.jcajce.interfaces.EdDSAPrivateKey;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
 
 import static io.nats.nkey.NKeyConstants.*;
 import static io.nats.nkey.NKeyUtils.*;
 
+@NullMarked
 public class NKey {
 
     private static boolean notValidPublicPrefixByte(int prefix) {
@@ -117,7 +120,7 @@ public class NKey {
         return dataBytes;
     }
 
-    static byte[] decode(NKeyType expectedType, char[] src) {
+    static byte @Nullable [] decode(NKeyType expectedType, char[] src) {
         byte[] raw = decode(src);
         byte[] dataBytes = Arrays.copyOfRange(raw, 1, raw.length);
         NKeyType type = NKeyType.fromPrefix(raw[0] & 0xFF);
@@ -148,7 +151,20 @@ public class NKey {
         return new NKeyDecodedSeed(b2, dataBytes);
     }
 
-    private static NKey createPair(NKeyType type, SecureRandom random)
+    private static @Nullable Provider getSecurityProvider() {
+        String property = System.getProperty(SECURITY_PROVIDER_PROPERTY);
+        if (property == null) {
+            // Instantiating the BouncyCastle provider to maintain backwards compatibility
+            return DefaultSecurityProviderFactory.getProvider();
+        }
+        if (property.isEmpty()) {
+            // Use whatever is configured as the default in the JVM
+            return null;
+        }
+        return Security.getProvider(property);
+    }
+
+    private static NKey createPair(NKeyType type, @Nullable SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         byte[] seed = new byte[ED25519_SEED_SIZE];
         if (random == null) {
@@ -160,18 +176,42 @@ public class NKey {
         return createPair(type, seed);
     }
 
-    private static NKey createPair(NKeyType type, byte[] seed) throws IOException {
-        Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(seed);
-        Ed25519PublicKeyParameters publicKey = privateKey.generatePublicKey();
-
-        byte[] pubBytes = publicKey.getEncoded();
+    private static NKey createPair(NKeyType type, byte[] seed) throws IOException, NoSuchAlgorithmException {
+        Provider securityProvider = getSecurityProvider();
+        byte[] pubBytes = seedToPubBytes(seed, securityProvider);
 
         byte[] bytes = new byte[pubBytes.length + seed.length];
         System.arraycopy(seed, 0, bytes, 0, seed.length);
         System.arraycopy(pubBytes, 0, bytes, seed.length, pubBytes.length);
 
         char[] encoded = encodeSeed(type, bytes);
-        return new NKey(type, null, encoded);
+        return new NKey(type, null, encoded, securityProvider);
+    }
+
+    private static byte[] seedToPubBytes(byte[] seed, @Nullable Provider securityProvider) throws NoSuchAlgorithmException {
+        KeyFactory keyFactory = getKeyFactoryInstance(securityProvider);
+        PublicKey publicKey;
+        try {
+            PKCS8EncodedKeySpec privateKeySpec = KeyCodec.seedBytesToKeySpec(seed);
+            // This cast restricts the securityProvider to BouncyCastle (regular or FIPS edition)
+            EdDSAPrivateKey privateKey = (EdDSAPrivateKey) keyFactory.generatePrivate(privateKeySpec);
+            publicKey = privateKey.getPublicKey();
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Invalid NKey seed", e);
+        }
+        return KeyCodec.publicKeyToPubBytes(publicKey);
+    }
+
+    private static Signature getSignatureInstance(@Nullable Provider securityProvider) throws NoSuchAlgorithmException {
+        return securityProvider == null
+                ? Signature.getInstance(CRYPTO_ALGORITHM)
+                : Signature.getInstance(CRYPTO_ALGORITHM, securityProvider);
+    }
+
+    private static KeyFactory getKeyFactoryInstance(@Nullable Provider securityProvider) throws NoSuchAlgorithmException {
+        return securityProvider == null
+                ? KeyFactory.getInstance(CRYPTO_ALGORITHM)
+                : KeyFactory.getInstance(CRYPTO_ALGORITHM, securityProvider);
     }
 
     /**
@@ -184,7 +224,7 @@ public class NKey {
      * @throws NoSuchProviderException if the default secure random cannot be created
      * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createAccount(SecureRandom random)
+    public static NKey createAccount(@Nullable SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         return createPair(NKeyType.ACCOUNT, random);
     }
@@ -199,7 +239,7 @@ public class NKey {
      * @throws NoSuchProviderException if the default secure random cannot be created
      * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createCluster(SecureRandom random)
+    public static NKey createCluster(@Nullable SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         return createPair(NKeyType.CLUSTER, random);
     }
@@ -214,7 +254,7 @@ public class NKey {
      * @throws NoSuchProviderException if the default secure random cannot be created
      * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createOperator(SecureRandom random)
+    public static NKey createOperator(@Nullable SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         return createPair(NKeyType.OPERATOR, random);
     }
@@ -229,7 +269,7 @@ public class NKey {
      * @throws NoSuchProviderException if the default secure random cannot be created
      * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createServer(SecureRandom random)
+    public static NKey createServer(@Nullable SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         return createPair(NKeyType.SERVER, random);
     }
@@ -244,7 +284,7 @@ public class NKey {
      * @throws NoSuchProviderException if the default secure random cannot be created
      * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createUser(SecureRandom random)
+    public static NKey createUser(@Nullable SecureRandom random)
         throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
         return createPair(NKeyType.USER, random);
     }
@@ -263,7 +303,8 @@ public class NKey {
         }
 
         NKeyType type = NKeyType.fromPrefix(prefix);
-        return new NKey(type, publicKey, null);
+        Provider securityPRovider = getSecurityProvider();
+        return new NKey(type, publicKey, null, securityPRovider);
     }
 
     /**
@@ -275,7 +316,8 @@ public class NKey {
         NKeyDecodedSeed decoded = decodeSeed(seed); // Should throw on bad seed
 
         if (decoded.bytes.length == ED25519_PRIVATE_KEYSIZE) {
-            return new NKey(NKeyType.fromPrefix(decoded.prefix), null, seed);
+            Provider securityProvider = getSecurityProvider();
+            return new NKey(NKeyType.fromPrefix(decoded.prefix), null, seed, securityProvider);
         } else {
             try {
                 return createPair(NKeyType.fromPrefix(decoded.prefix), decoded.bytes);
@@ -328,19 +370,25 @@ public class NKey {
     /**
      * The seed or private key per the Ed25519 spec, encoded with encodeSeed.
      */
-    private final char[] privateKeyAsSeed;
+    private final char @Nullable [] privateKeyAsSeed;
 
     /**
      * The public key, maybe null. Used for public only NKeys.
      */
-    private final char[] publicKey;
+    private final char @Nullable [] publicKey;
+
+    /**
+     * The Java Security API provider.
+     */
+    private final @Nullable Provider securityProvider;
 
     private final NKeyType type;
 
-    private NKey(NKeyType t, char[] publicKey, char[] privateKey) {
+    private NKey(NKeyType t, char @Nullable [] publicKey, char @Nullable [] privateKey, @Nullable Provider securityProvider) {
         this.type = t;
         this.privateKeyAsSeed = privateKey;
         this.publicKey = publicKey;
+        this.securityProvider = securityProvider;
     }
 
     /**
@@ -391,7 +439,8 @@ public class NKey {
         if (publicKey != null) {
             return publicKey;
         }
-        return encode(this.type, getKeyPair().getPublic().getEncoded());
+        byte[] pubBytes = KeyCodec.publicKeyToPubBytes(getKeyPair().getPublic());
+        return encode(this.type, pubBytes);
     }
 
     /**
@@ -428,10 +477,11 @@ public class NKey {
         System.arraycopy(decoded.bytes, 0, seedBytes, 0, seedBytes.length);
         System.arraycopy(decoded.bytes, seedBytes.length, pubBytes, 0, pubBytes.length);
 
-        Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(seedBytes);
-        Ed25519PublicKeyParameters publicKey = new Ed25519PublicKeyParameters(pubBytes);
+        KeyFactory keyFactory = getKeyFactoryInstance(securityProvider);
+        PrivateKey privateKey = keyFactory.generatePrivate(KeyCodec.seedBytesToKeySpec(seedBytes));
+        PublicKey publicKey = keyFactory.generatePublic(KeyCodec.pubBytesToKeySpec(pubBytes));
 
-        return new KeyPair(new PublicKeyWrapper(publicKey), new PrivateKeyWrapper(privateKey));
+        return new KeyPair(publicKey, privateKey);
     }
 
     /**
@@ -442,7 +492,7 @@ public class NKey {
     }
 
     /**
-     * Sign aribitrary binary input.
+     * Sign arbitrary binary input.
      *
      * @param input the bytes to sign
      * @return the signature for the input from the NKey
@@ -451,11 +501,10 @@ public class NKey {
      * @throws IOException              if there is a problem reading the data
      */
     public byte[] sign(byte[] input) throws GeneralSecurityException, IOException {
-        Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(getKeyPair().getPrivate().getEncoded());
-        Ed25519Signer signer = new Ed25519Signer();
-        signer.init(true, privateKey);
-        signer.update(input, 0, input.length);
-        return signer.generateSignature();
+        Signature signature = getSignatureInstance(securityProvider);
+        signature.initSign(getKeyPair().getPrivate());
+        signature.update(input);
+        return signature.sign();
     }
 
     /**
@@ -469,20 +518,19 @@ public class NKey {
      * @throws IOException              if there is a problem reading the data
      */
     public boolean verify(byte[] input, byte[] signature) throws GeneralSecurityException, IOException {
-        Ed25519PublicKeyParameters publicKey;
+        PublicKey publicKey;
         if (privateKeyAsSeed != null) {
-            publicKey = new Ed25519PublicKeyParameters(getKeyPair().getPublic().getEncoded());
+            publicKey = getKeyPair().getPublic();
         } else {
             char[] encodedPublicKey = getPublicKey();
             byte[] decodedPublicKey = decode(this.type, encodedPublicKey);
-            //noinspection DataFlowIssue // decode will throw instead of return null
-            publicKey = new Ed25519PublicKeyParameters(decodedPublicKey);
+            KeyFactory keyFactory = getKeyFactoryInstance(securityProvider);
+            publicKey = keyFactory.generatePublic(KeyCodec.pubBytesToKeySpec(decodedPublicKey));
         }
-
-        Ed25519Signer signer = new Ed25519Signer();
-        signer.init(false, publicKey);
-        signer.update(input, 0, input.length);
-        return signer.verifySignature(signature);
+        Signature signer = getSignatureInstance(securityProvider);
+        signer.initVerify(publicKey);
+        signer.update(input);
+        return signer.verify(signature);
     }
 
     @Override

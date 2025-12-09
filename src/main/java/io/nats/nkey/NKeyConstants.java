@@ -1,4 +1,4 @@
-// Copyright 2020-2024 The NATS Authors
+// Copyright 2020-2025 The NATS Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at:
@@ -14,6 +14,9 @@
 package io.nats.nkey;
 
 public interface NKeyConstants {
+    String CRYPTO_ALGORITHM = "Ed25519";
+    String SECURITY_PROVIDER_PROPERTY = "io.nats.nkey.security.provider";
+
     // PrefixByteSeed is the prefix byte used for encoded NATS Seeds
     int PREFIX_BYTE_SEED = 18 << 3; // Base32-encodes to 'S...'
 

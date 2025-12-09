@@ -1,4 +1,4 @@
-// Copyright 2020-2024 The NATS Authors
+// Copyright 2020-2025 The NATS Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at:
@@ -14,12 +14,14 @@
 package io.nats.nkey;
 
 import io.ResourceUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
+import java.security.Signature;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -555,6 +557,17 @@ public class NKeyTests {
         NKeyDecodedSeed decoded = NKey.decodeSeed(seed);
         char[] encodedSeed = NKey.encodeSeed(NKeyType.fromPrefix(decoded.prefix), decoded.bytes);
         assertArrayEquals(encodedSeed, seed);
+
+        Signature fromSeedJcaSignature = Signature.getInstance("Ed25519", new BouncyCastleProvider());
+        fromSeedJcaSignature.initSign(fromSeed.getKeyPair().getPrivate());
+        fromSeedJcaSignature.update(data);
+        byte[] fromSeedJcaSignatureBytes = fromSeedJcaSignature.sign();
+        assertArrayEquals(fromSeedJcaSignatureBytes, sig);
+
+        Signature fromPublicKeyJcaSignature = Signature.getInstance("Ed25519", new BouncyCastleProvider());
+        fromPublicKeyJcaSignature.initVerify(fromSeed.getKeyPair().getPublic());
+        fromPublicKeyJcaSignature.update(data);
+        assertTrue(fromPublicKeyJcaSignature.verify(sig));
     }
 
     @Test
