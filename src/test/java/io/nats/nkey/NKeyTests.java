@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
@@ -97,7 +96,7 @@ public class NKeyTests {
         char[] encoded = NKey.encodeSeed(NKeyType.ACCOUNT, bytes);
         NKeyDecodedSeed decoded = NKey.decodeSeed(encoded);
 
-        assertEquals(NKeyType.fromPrefix(decoded.prefix), NKeyType.ACCOUNT);
+        assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(decoded.prefix));
         assertArrayEquals(bytes, decoded.bytes);
     }
 
@@ -141,7 +140,8 @@ public class NKeyTests {
         catch (IOException e) {
             fail();
         }
-        assertNull(NKey.decode(NKeyType.USER, encoded));
+        char[] fEncoded = encoded;
+        assertThrows(IllegalArgumentException.class, () -> NKey.decode(NKeyType.USER, fEncoded));
     }
 
     @Test
@@ -198,15 +198,15 @@ public class NKeyTests {
         assertEquals(NKey.fromSeed(theKey.getSeed()), NKey.fromSeed(theKey.getSeed()));
 
         char[] publicKey = theKey.getPublicKey();
-        assertEquals(publicKey[0], 'A');
+        assertEquals('A', publicKey[0]);
 
         char[] privateKey = theKey.getPrivateKey();
-        assertEquals(privateKey[0], 'P');
+        assertEquals('P', privateKey[0]);
 
         byte[] data = "Synadia".getBytes(StandardCharsets.UTF_8);
         byte[] sig = theKey.sign(data);
 
-        assertEquals(sig.length, ED25519_SIGNATURE_SIZE);
+        assertEquals(ED25519_SIGNATURE_SIZE, sig.length);
 
         assertTrue(theKey.verify(data, sig));
 
@@ -215,10 +215,10 @@ public class NKeyTests {
         assertNotEquals(otherKey, theKey);
 
         assertTrue(NKey.isValidPublicAccountKey(publicKey));
-        assertFalse(NKey.isValidPublicClusterKey(publicKey));
-        assertFalse(NKey.isValidPublicOperatorKey(publicKey));
-        assertFalse(NKey.isValidPublicUserKey(publicKey));
-        assertFalse(NKey.isValidPublicServerKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicClusterKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicOperatorKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicUserKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicServerKey(publicKey));
     }
 
     @Test
@@ -232,15 +232,15 @@ public class NKeyTests {
         assertEquals(NKey.fromSeed(theKey.getSeed()), NKey.fromSeed(theKey.getSeed()));
 
         char[] publicKey = theKey.getPublicKey();
-        assertEquals(publicKey[0], 'U');
+        assertEquals('U', publicKey[0]);
 
         char[] privateKey = theKey.getPrivateKey();
-        assertEquals(privateKey[0], 'P');
+        assertEquals('P', privateKey[0]);
 
         byte[] data = "Mister Zero".getBytes(StandardCharsets.UTF_8);
         byte[] sig = theKey.sign(data);
 
-        assertEquals(sig.length, ED25519_SIGNATURE_SIZE);
+        assertEquals(ED25519_SIGNATURE_SIZE, sig.length);
 
         assertTrue(theKey.verify(data, sig));
 
@@ -249,10 +249,10 @@ public class NKeyTests {
         assertNotEquals(otherKey, theKey);
 
         assertTrue(NKey.isValidPublicUserKey(publicKey));
-        assertFalse(NKey.isValidPublicAccountKey(publicKey));
-        assertFalse(NKey.isValidPublicClusterKey(publicKey));
-        assertFalse(NKey.isValidPublicOperatorKey(publicKey));
-        assertFalse(NKey.isValidPublicServerKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicAccountKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicClusterKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicOperatorKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicServerKey(publicKey));
     }
 
     @Test
@@ -266,15 +266,15 @@ public class NKeyTests {
         assertEquals(NKey.fromSeed(theKey.getSeed()), NKey.fromSeed(theKey.getSeed()));
 
         char[] publicKey = theKey.getPublicKey();
-        assertEquals(publicKey[0], 'C');
+        assertEquals('C', publicKey[0]);
 
         char[] privateKey = theKey.getPrivateKey();
-        assertEquals(privateKey[0], 'P');
+        assertEquals('P', privateKey[0]);
 
         byte[] data = "Connect Everything".getBytes(StandardCharsets.UTF_8);
         byte[] sig = theKey.sign(data);
 
-        assertEquals(sig.length, ED25519_SIGNATURE_SIZE);
+        assertEquals(ED25519_SIGNATURE_SIZE, sig.length);
 
         assertTrue(theKey.verify(data, sig));
 
@@ -283,10 +283,10 @@ public class NKeyTests {
         assertNotEquals(otherKey, theKey);
 
         assertTrue(NKey.isValidPublicClusterKey(publicKey));
-        assertFalse(NKey.isValidPublicAccountKey(publicKey));
-        assertFalse(NKey.isValidPublicOperatorKey(publicKey));
-        assertFalse(NKey.isValidPublicUserKey(publicKey));
-        assertFalse(NKey.isValidPublicServerKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicAccountKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicOperatorKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicUserKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicServerKey(publicKey));
     }
 
     @Test
@@ -300,15 +300,15 @@ public class NKeyTests {
         assertEquals(NKey.fromSeed(theKey.getSeed()), NKey.fromSeed(theKey.getSeed()));
 
         char[] publicKey = theKey.getPublicKey();
-        assertEquals(publicKey[0], 'O');
+        assertEquals('O', publicKey[0]);
 
         char[] privateKey = theKey.getPrivateKey();
-        assertEquals(privateKey[0], 'P');
+        assertEquals('P', privateKey[0]);
 
         byte[] data = "Connect Everything".getBytes(StandardCharsets.UTF_8);
         byte[] sig = theKey.sign(data);
 
-        assertEquals(sig.length, ED25519_SIGNATURE_SIZE);
+        assertEquals(ED25519_SIGNATURE_SIZE, sig.length);
 
         assertTrue(theKey.verify(data, sig));
 
@@ -317,10 +317,10 @@ public class NKeyTests {
         assertNotEquals(otherKey, theKey);
 
         assertTrue(NKey.isValidPublicOperatorKey(publicKey));
-        assertFalse(NKey.isValidPublicAccountKey(publicKey));
-        assertFalse(NKey.isValidPublicClusterKey(publicKey));
-        assertFalse(NKey.isValidPublicUserKey(publicKey));
-        assertFalse(NKey.isValidPublicServerKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicAccountKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicClusterKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicUserKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicServerKey(publicKey));
     }
 
     @Test
@@ -334,15 +334,15 @@ public class NKeyTests {
         assertEquals(NKey.fromSeed(theKey.getSeed()), NKey.fromSeed(theKey.getSeed()));
 
         char[] publicKey = theKey.getPublicKey();
-        assertEquals(publicKey[0], 'N');
+        assertEquals('N', publicKey[0]);
 
         char[] privateKey = theKey.getPrivateKey();
-        assertEquals(privateKey[0], 'P');
+        assertEquals('P', privateKey[0]);
 
         byte[] data = "Polaris and Pluto".getBytes(StandardCharsets.UTF_8);
         byte[] sig = theKey.sign(data);
 
-        assertEquals(sig.length, ED25519_SIGNATURE_SIZE);
+        assertEquals(ED25519_SIGNATURE_SIZE, sig.length);
 
         assertTrue(theKey.verify(data, sig));
 
@@ -351,10 +351,10 @@ public class NKeyTests {
         assertNotEquals(otherKey, theKey);
 
         assertTrue(NKey.isValidPublicServerKey(publicKey));
-        assertFalse(NKey.isValidPublicAccountKey(publicKey));
-        assertFalse(NKey.isValidPublicClusterKey(publicKey));
-        assertFalse(NKey.isValidPublicOperatorKey(publicKey));
-        assertFalse(NKey.isValidPublicUserKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicAccountKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicClusterKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicOperatorKey(publicKey));
+        assertThrows(IllegalArgumentException.class, () -> NKey.isValidPublicUserKey(publicKey));
     }
 
     @Test
@@ -382,9 +382,9 @@ public class NKeyTests {
         assertNotEquals(otherKey, theKey);
         assertNotEquals(otherKey, pubOnly);
 
-        assertNotEquals(pubOnly.getPublicKey()[0], '\0');
+        assertNotEquals('\0', pubOnly.getPublicKey()[0]);
         pubOnly.clear();
-        assertEquals(pubOnly.getPublicKey()[0], '\0');
+        assertEquals('\0', pubOnly.getPublicKey()[0]);
     }
 
     @Test
@@ -476,7 +476,7 @@ public class NKeyTests {
         byte[] data = ResourceUtils.resourceAsBytes("keystore.jks");
         byte[] sig = theKey.sign(data);
 
-        assertEquals(sig.length, ED25519_SIGNATURE_SIZE);
+        assertEquals(ED25519_SIGNATURE_SIZE, sig.length);
         assertTrue(theKey.verify(data, sig));
 
         char[] publicKey = theKey.getPublicKey();
@@ -520,7 +520,7 @@ public class NKeyTests {
         NKey fromSeed = NKey.fromSeed(seed);
         NKey fromPublicKey = NKey.fromPublicKey(publicKey);
 
-        assertEquals(fromSeed.getType(), NKeyType.USER);
+        assertEquals(NKeyType.USER, fromSeed.getType());
 
         byte[] nonceData = Base64.getUrlDecoder().decode(nonce);
         byte[] nonceSig = Base64.getUrlDecoder().decode(nonceEncodedSig);
@@ -565,7 +565,7 @@ public class NKeyTests {
         assertEquals(NKeyType.OPERATOR, NKeyType.fromPrefix(PREFIX_BYTE_OPERATOR));
         assertEquals(NKeyType.CLUSTER, NKeyType.fromPrefix(PREFIX_BYTE_CLUSTER));
         assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(PREFIX_BYTE_PRIVATE));
-        assertThrows(IllegalArgumentException.class, () -> { NKeyType ignored = NKeyType.fromPrefix(9999); });
+        assertNull(NKeyType.fromPrefix(9999));
     }
 
     @Test
@@ -587,13 +587,14 @@ public class NKeyTests {
         //noinspection EqualsWithItself
         assertEquals(key, key);
         assertEquals(key, NKey.fromSeed(key.getSeed()));
+        //noinspection MisorderedAssertEqualsArguments
         assertNotEquals(key, new Object());
         assertNotEquals(key, NKey.createServer(null));
         assertNotEquals(key, NKey.createAccount(null));
     }
 
     @Test
-    public void testClear() throws Exception {
+    public void testClear() {
         assertThrows(IllegalArgumentException.class, () -> {
             NKey key = NKey.createServer(null);
             key.clear();
@@ -624,7 +625,7 @@ public class NKeyTests {
         _testFromPublicKey("SCAP4LGVURDWVL37AZIM5O47UKANFI6FKBY77HMYF55CKW2XFKLNUBTTFE", "CAO36T42KFA2LMIZ6YHJKPQEJWT5ULYSV633FWBCEJ7MREZPHHC56BSC");
     }
 
-    private static void _testFromPublicKey(String userEncodedSeed, String userEncodedPubKey) throws GeneralSecurityException, IOException {
+    private static void _testFromPublicKey(String userEncodedSeed, String userEncodedPubKey) throws IOException {
         NKey fromSeed = NKey.fromSeed(userEncodedSeed.toCharArray());
         NKey fromKey = NKey.fromPublicKey(fromSeed.getPublicKey());
 

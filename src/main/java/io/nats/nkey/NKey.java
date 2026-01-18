@@ -16,12 +16,14 @@ package io.nats.nkey;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
+import org.jspecify.annotations.NonNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.SecureRandom;
 import java.util.Arrays;
 
 import static io.nats.nkey.NKeyConstants.*;
@@ -30,15 +32,14 @@ import static io.nats.nkey.NKeyUtils.*;
 public class NKey {
 
     private static boolean notValidPublicPrefixByte(int prefix) {
-        switch (prefix) {
-            case PREFIX_BYTE_SERVER:
-            case PREFIX_BYTE_CLUSTER:
-            case PREFIX_BYTE_OPERATOR:
-            case PREFIX_BYTE_ACCOUNT:
-            case PREFIX_BYTE_USER:
-                return false;
-        }
-        return true;
+        return switch (prefix) {
+            case PREFIX_BYTE_SERVER,
+                 PREFIX_BYTE_CLUSTER,
+                 PREFIX_BYTE_OPERATOR,
+                 PREFIX_BYTE_ACCOUNT,
+                 PREFIX_BYTE_USER -> false;
+            default -> true;
+        };
     }
 
     static char[] removePaddingAndClear(char[] withPad) {
@@ -117,15 +118,16 @@ public class NKey {
         return dataBytes;
     }
 
-    static byte[] decode(NKeyType expectedType, char[] src) {
+    static byte @NonNull [] decode(NKeyType expectedType, char[] src) {
         byte[] raw = decode(src);
         byte[] dataBytes = Arrays.copyOfRange(raw, 1, raw.length);
         NKeyType type = NKeyType.fromPrefix(raw[0] & 0xFF);
-
-        if (type != expectedType) {
-            return null;
+        if (type == null) {
+            throw new IllegalArgumentException("Unknown prefix");
         }
-
+        if (type != expectedType) {
+            throw new IllegalArgumentException("Unexpected NKeyType");
+        }
         return dataBytes;
     }
 
@@ -148,8 +150,7 @@ public class NKey {
         return new NKeyDecodedSeed(b2, dataBytes);
     }
 
-    private static NKey createPair(NKeyType type, SecureRandom random)
-        throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
+    private static NKey createPair(NKeyType type, SecureRandom random) throws IOException {
         byte[] seed = new byte[ED25519_SEED_SIZE];
         if (random == null) {
             SRAND.nextBytes(seed);
@@ -181,11 +182,8 @@ public class NKey {
      * @param random A secure random provider
      * @return the new NKey
      * @throws IOException if the seed cannot be encoded to a string
-     * @throws NoSuchProviderException if the default secure random cannot be created
-     * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createAccount(SecureRandom random)
-        throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
+    public static NKey createAccount(SecureRandom random) throws IOException {
         return createPair(NKeyType.ACCOUNT, random);
     }
 
@@ -196,11 +194,8 @@ public class NKey {
      * @param random A secure random provider
      * @return the new NKey
      * @throws IOException if the seed cannot be encoded to a string
-     * @throws NoSuchProviderException if the default secure random cannot be created
-     * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createCluster(SecureRandom random)
-        throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
+    public static NKey createCluster(SecureRandom random) throws IOException {
         return createPair(NKeyType.CLUSTER, random);
     }
 
@@ -211,11 +206,8 @@ public class NKey {
      * @param random A secure random provider
      * @return the new NKey
      * @throws IOException if the seed cannot be encoded to a string
-     * @throws NoSuchProviderException if the default secure random cannot be created
-     * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createOperator(SecureRandom random)
-        throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
+    public static NKey createOperator(SecureRandom random) throws IOException {
         return createPair(NKeyType.OPERATOR, random);
     }
 
@@ -226,11 +218,8 @@ public class NKey {
      * @param random A secure random provider
      * @return the new NKey
      * @throws IOException if the seed cannot be encoded to a string
-     * @throws NoSuchProviderException if the default secure random cannot be created
-     * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createServer(SecureRandom random)
-        throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
+    public static NKey createServer(SecureRandom random) throws IOException {
         return createPair(NKeyType.SERVER, random);
     }
 
@@ -241,11 +230,8 @@ public class NKey {
      * @param random A secure random provider
      * @return the new NKey
      * @throws IOException if the seed cannot be encoded to a string
-     * @throws NoSuchProviderException if the default secure random cannot be created
-     * @throws NoSuchAlgorithmException if the default secure random cannot be created
      */
-    public static NKey createUser(SecureRandom random)
-        throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
+    public static NKey createUser(SecureRandom random) throws IOException {
         return createPair(NKeyType.USER, random);
     }
 
@@ -288,41 +274,51 @@ public class NKey {
     /**
      * @param src the encoded public key
      * @return true if the public key is an account public key
+     * @throws IllegalArgumentException if is not a valid Account key
      */
     public static boolean isValidPublicAccountKey(char[] src) {
-        return decode(NKeyType.ACCOUNT, src) != null;
+        decode(NKeyType.ACCOUNT, src);
+        return true;
     }
 
     /**
      * @param src the encoded public key
      * @return true if the public key is a cluster public key
+     * @throws IllegalArgumentException if is not a valid Cluster key
      */
     public static boolean isValidPublicClusterKey(char[] src) {
-        return decode(NKeyType.CLUSTER, src) != null;
+        decode(NKeyType.CLUSTER, src);
+        return true;
     }
 
     /**
      * @param src the encoded public key
      * @return true if the public key is an operator public key
+     * @throws IllegalArgumentException if is not a valid Operator key
      */
     public static boolean isValidPublicOperatorKey(char[] src) {
-        return decode(NKeyType.OPERATOR, src) != null;
+        decode(NKeyType.OPERATOR, src);
+        return true;
     }
 
     /**
      * @param src the encoded public key
      * @return true if the public key is a server public key
+     * @throws IllegalArgumentException if is not a valid Server key
      */
     public static boolean isValidPublicServerKey(char[] src) {
-        return decode(NKeyType.SERVER, src) != null;
+        decode(NKeyType.SERVER, src);
+        return true;
     }
 
     /**
      * @param src the encoded public key
      * @return true if the public key is a user public key
+     * @throws IllegalArgumentException if is not a valid User key
      */
     public static boolean isValidPublicUserKey(char[] src) {
-        return decode(NKeyType.USER, src) != null;
+        decode(NKeyType.USER, src);
+        return true;
     }
 
     /**
@@ -382,12 +378,9 @@ public class NKey {
 
     /**
      * @return the encoded public key for this NKey
-     *
-     * @throws GeneralSecurityException if there is an encryption problem
-     * @throws IOException              if there is a problem encoding the public
-     *                                  key
+     * @throws IOException if there is a problem encoding the public key
      */
-    public char[] getPublicKey() throws GeneralSecurityException, IOException {
+    public char[] getPublicKey() throws IOException {
         if (publicKey != null) {
             return publicKey;
         }
@@ -396,11 +389,9 @@ public class NKey {
 
     /**
      * @return the encoded private key for this NKey
-     *
-     * @throws GeneralSecurityException if there is an encryption problem
-     * @throws IOException              if there is a problem encoding the key
+     * @throws IOException if there is a problem encoding the key
      */
-    public char[] getPrivateKey() throws GeneralSecurityException, IOException {
+    public char[] getPrivateKey() throws IOException {
         if (privateKeyAsSeed == null) {
             throw new IllegalStateException("Public-only NKey");
         }
@@ -410,13 +401,9 @@ public class NKey {
     }
 
     /**
-     * @return A Java security keypair that represents this NKey in Java security
-     *         form.
-     *
-     * @throws GeneralSecurityException if there is an encryption problem
-     * @throws IOException              if there is a problem encoding or decoding
+     * @return A Java security keypair that represents this NKey in Java security form.
      */
-    public KeyPair getKeyPair() throws GeneralSecurityException, IOException {
+    public KeyPair getKeyPair() {
         if (privateKeyAsSeed == null) {
             throw new IllegalStateException("Public-only NKey");
         }
@@ -442,15 +429,11 @@ public class NKey {
     }
 
     /**
-     * Sign aribitrary binary input.
-     *
+     * Sign arbitrary binary input.
      * @param input the bytes to sign
      * @return the signature for the input from the NKey
-     *
-     * @throws GeneralSecurityException if there is an encryption problem
-     * @throws IOException              if there is a problem reading the data
      */
-    public byte[] sign(byte[] input) throws GeneralSecurityException, IOException {
+    public byte[] sign(byte[] input) {
         Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(getKeyPair().getPrivate().getEncoded());
         Ed25519Signer signer = new Ed25519Signer();
         signer.init(true, privateKey);
@@ -460,22 +443,18 @@ public class NKey {
 
     /**
      * Verify a signature.
-     *
      * @param input     the bytes that were signed
      * @param signature the bytes for the signature
      * @return true if the signature matches this keys signature for the input.
-     *
-     * @throws GeneralSecurityException if there is an encryption problem
-     * @throws IOException              if there is a problem reading the data
+     * @throws IOException if there is a problem reading the data
      */
-    public boolean verify(byte[] input, byte[] signature) throws GeneralSecurityException, IOException {
+    public boolean verify(byte[] input, byte[] signature) throws IOException {
         Ed25519PublicKeyParameters publicKey;
         if (privateKeyAsSeed != null) {
             publicKey = new Ed25519PublicKeyParameters(getKeyPair().getPublic().getEncoded());
         } else {
             char[] encodedPublicKey = getPublicKey();
             byte[] decodedPublicKey = decode(this.type, encodedPublicKey);
-            //noinspection DataFlowIssue // decode will throw instead of return null
             publicKey = new Ed25519PublicKeyParameters(decodedPublicKey);
         }
 
@@ -487,13 +466,13 @@ public class NKey {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
-        if (!(o instanceof NKey)) {
+            }
+
+        if (!(o instanceof NKey otherNkey)) {
             return false;
         }
-
-        NKey otherNkey = (NKey) o;
 
         if (this.type != otherNkey.type) {
             return false;

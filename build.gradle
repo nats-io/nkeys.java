@@ -1,40 +1,61 @@
-import org.gradle.internal.os.OperatingSystem
+import aQute.bnd.gradle.Bundle
 
 plugins {
-    id 'java'
-    id 'java-library'
-    id 'maven-publish'
-    id 'jacoco'
-    id 'com.github.kt3k.coveralls' version '2.12.0'
-    id "org.gradle.test-retry" version "1.1.9"
-    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
-    id 'signing'
+    id("java-library")
+    id("maven-publish")
+    id("jacoco")
+    id("biz.aQute.bnd.builder") version "7.2.1"
+    id("org.gradle.test-retry") version "1.6.4"
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
+    id("signing")
 }
 
-def jarVersion = "2.1.2"
+def jarVersion = "3.0.0"
 group = 'io.nats'
 
-def isMerge = System.getenv("BUILD_EVENT") == "push"
 def isRelease = System.getenv("BUILD_EVENT") == "release"
+def tc = System.getenv("TARGET_COMPATIBILITY")
+def targetId =          tc == "25" ? "25"                   : "21"
+def targetJavaVersion = tc == "25" ? JavaVersion.VERSION_25 : JavaVersion.VERSION_21
+def artifact = "nkeys-java-jdk" + targetId
+def bundleName = "io.nats.nkeys.java.jdk" + targetId
 
-// version is the variable the build actually uses.
-version = isRelease ? jarVersion : jarVersion + "-SNAPSHOT"
+version = isRelease ? jarVersion : jarVersion + "-SNAPSHOT" // version is the variable the gradle uses.
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = targetJavaVersion
+    withSourcesJar()
+    withJavadocJar()
 }
 
 repositories {
     mavenCentral()
-    maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+    maven { url="https://repo1.maven.org/maven2/" }
+    maven { url="https://central.sonatype.com/repository/maven-snapshots/" }
 }
 
 dependencies {
-    implementation 'org.bouncycastle:bcprov-lts8on:2.73.7'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.83'
+    implementation 'org.jspecify:jspecify:1.0.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
     testImplementation 'nl.jqno.equalsverifier:equalsverifier:3.12.3'
+}
+
+tasks.register('bundle', Bundle) {
+    from sourceSets.main.output
+}
+
+jar {
+    bundle {
+        bnd("Bundle-Name": bundleName,
+                "Bundle-Vendor": "nats.io",
+                "Bundle-Description": "Java NKeys Utility",
+                "Bundle-DocURL": "https://github.com/nats-io/nkeys.java",
+                "Target-Compatibility": "Java " + targetJavaVersion
+        )
+    }
 }
 
 test {
@@ -46,68 +67,33 @@ test {
     }
 }
 
+
 javadoc {
+    failOnError = false
     options.overview = 'src/main/javadoc/overview.html' // relative to source root
     source = sourceSets.main.allJava
     title = "NATS.IO Java NKeys"
     classpath = sourceSets.main.runtimeClasspath
-    doLast {
-        if (!OperatingSystem.current().isWindows()) {
-            exec {
-                println "Updating favicon on all html files"
-                workingDir 'build/docs/javadoc'
-                // Only on linux, mac at this point
-                commandLine 'find', '.', '-name', '*.html', '-exec', 'sed', '-i', '-e', 's#<head>#<head><link rel="icon" type="image/ico" href="favicon.ico">#', '{}', ';'
-            }
-            copy {
-                println "Copying images to javadoc folder"
-                from 'src/main/javadoc/images'
-                into 'build/docs/javadoc'
-            }
-        }
-    }
-}
-
-task javadocJar(type: Jar) {
-    archiveClassifier.set('javadoc')
-    from javadoc
-}
-
-task sourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
-    from sourceSets.main.allSource
 }
 
 jacoco {
-    toolVersion = "0.8.6"
+    toolVersion = "0.8.13"
 }
 
 jacocoTestReport {
     reports {
-        xml.enabled = true // coveralls plugin depends on xml format report
-        html.enabled = true
-    }
-    afterEvaluate { // only report on main library not examples
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it,
-                    exclude: ['**/examples**'])
-        }))
+        xml.required = true // coveralls plugin depends on xml format report
+        html.required = true
     }
 }
 
-artifacts {
-    archives javadocJar, sourcesJar
-}
-
-if (isMerge || isRelease) {
-    nexusPublishing {
-        repositories {
-            sonatype {
-                nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
-                snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
-                username = System.getenv('OSSRH_USERNAME')
-                password = System.getenv('OSSRH_PASSWORD')
-            }
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+            username = System.getenv('OSSRH_USERNAME')
+            password = System.getenv('OSSRH_PASSWORD')
         }
     }
 }
@@ -116,15 +102,14 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            artifact sourcesJar
-            artifact javadocJar
             pom {
-                name = rootProject.name
-                packaging = 'jar'
-                groupId = group
-                artifactId = archivesBaseName
+                name = 'NATS.IO Java NKeys'
                 description = 'Java NKeys Implementation'
                 url = 'https://github.com/nats-io/nkeys.java'
+
+                groupId = group
+                artifactId = artifact
+
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
