@@ -15,15 +15,19 @@ group = 'io.nats'
 
 def isRelease = System.getenv("BUILD_EVENT") == "release"
 def tc = System.getenv("TARGET_COMPATIBILITY")
-def targetId =          tc == "25" ? "25"                   : "21"
-def targetJavaVersion = tc == "25" ? JavaVersion.VERSION_25 : JavaVersion.VERSION_21
-def artifact = "nkeys-java-jdk" + targetId
-def bundleName = "io.nats.nkeys.java.jdk" + targetId
+def targetJavaVersion = tc == null ? JavaVersion.VERSION_1_8 : JavaVersion.toVersion(tc)
+def targetId = targetJavaVersion.toString()
+def artifact = "nkeys-java" + (targetJavaVersion == JavaVersion.VERSION_1_8 ? "" : "-jdk" + targetId)
+def bundleName = "io.nats.nkeys.java" + (targetJavaVersion == JavaVersion.VERSION_1_8 ? "" : ".jdk" + targetId)
+
+System.out.println("targetCompatibility: " + targetId)
+System.out.println("artifact: " + artifact)
+System.out.println("bundleName: " + bundleName)
 
 version = isRelease ? jarVersion : jarVersion + "-SNAPSHOT" // version is the variable the gradle uses.
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = targetJavaVersion
     withSourcesJar()
     withJavadocJar()
@@ -41,6 +45,8 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
     testImplementation 'nl.jqno.equalsverifier:equalsverifier:3.12.3'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.register('bundle', Bundle) {

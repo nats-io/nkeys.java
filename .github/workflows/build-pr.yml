@@ -9,16 +9,16 @@ jobs:
   build:
     strategy:
       matrix:
-        jdk: [ 21, 25 ]
+        tc: [ 8, 17, 21, 25 ]
     runs-on: ubuntu-latest
     env:
       BUILD_EVENT: ${{ github.event_name }}
-      TARGET_COMPATIBILITY: ${{ matrix.jdk }}
+      TARGET_COMPATIBILITY: ${{ matrix.tc }}
     steps:
       - name: Setup JDK
         uses: actions/setup-java@v5
         with:
-          java-version: ${{ matrix.jdk }}
+          java-version: 25
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -35,7 +35,7 @@ jobs:
         with:
           github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
           parallel: true
-          flag-name: jdk-${{ matrix.jdk }}
+          flag-name: tc${{ matrix.tc }}
 
   coveralls-finish:
     needs: build
@@ -46,4 +46,4 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
-          carryforward: "jdk-21"
+          carryforward: "tc8"

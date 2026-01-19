@@ -31,15 +31,16 @@ import static io.nats.nkey.NKeyUtils.*;
 
 public class NKey {
 
-    private static boolean notValidPublicPrefixByte(int prefix) {
-        return switch (prefix) {
-            case PREFIX_BYTE_SERVER,
-                 PREFIX_BYTE_CLUSTER,
-                 PREFIX_BYTE_OPERATOR,
-                 PREFIX_BYTE_ACCOUNT,
-                 PREFIX_BYTE_USER -> false;
-            default -> true;
-        };
+    static boolean notValidPublicPrefixByte(int prefix) {
+        switch (prefix) {
+            case PREFIX_BYTE_SERVER:
+            case PREFIX_BYTE_CLUSTER:
+            case PREFIX_BYTE_OPERATOR:
+            case PREFIX_BYTE_ACCOUNT:
+            case PREFIX_BYTE_USER:
+                return false;
+        }
+        return true;
     }
 
     static char[] removePaddingAndClear(char[] withPad) {
@@ -466,13 +467,13 @@ public class NKey {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this) {
+        if (o == this)
             return true;
-            }
-
-        if (!(o instanceof NKey otherNkey)) {
+        if (!(o instanceof NKey)) {
             return false;
         }
+
+        NKey otherNkey = (NKey) o;
 
         if (this.type != otherNkey.type) {
             return false;

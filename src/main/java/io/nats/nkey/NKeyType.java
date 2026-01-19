@@ -55,13 +55,14 @@ public enum NKeyType {
     }
 
     public static @Nullable NKeyType fromPrefix(int prefix) {
-        return switch (prefix) {
-            case PREFIX_BYTE_ACCOUNT, PREFIX_BYTE_PRIVATE -> ACCOUNT;
-            case PREFIX_BYTE_SERVER -> SERVER;
-            case PREFIX_BYTE_USER -> USER;
-            case PREFIX_BYTE_CLUSTER -> CLUSTER;
-            case PREFIX_BYTE_OPERATOR -> OPERATOR;
-            default -> null;
-        };
+        switch (prefix) {
+            case PREFIX_BYTE_ACCOUNT:
+            case PREFIX_BYTE_PRIVATE:  return ACCOUNT;
+            case PREFIX_BYTE_SERVER:   return SERVER;
+            case PREFIX_BYTE_USER:     return USER;
+            case PREFIX_BYTE_CLUSTER:  return CLUSTER;
+            case PREFIX_BYTE_OPERATOR: return OPERATOR;
+        }
+        return null;
     }
 }
