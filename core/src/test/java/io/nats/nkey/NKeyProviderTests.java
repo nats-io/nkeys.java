@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
 
 @Execution(SAME_THREAD)
-public class CoreProviderTests {
+public class NKeyProviderTests {
     private static final int ED25519_SIGNATURE_SIZE = 64;
 
     private static NKeyProvider PROVIDER;

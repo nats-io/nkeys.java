@@ -85,7 +85,7 @@ public abstract class NKeyProvider {
     }
 
     protected @Nullable SecureRandom secureRandom;
-    protected @Nullable Random insecureRandom;
+    protected @Nullable Random random;
 
     protected NKeyProvider() {}
 
@@ -93,8 +93,8 @@ public abstract class NKeyProvider {
         this.secureRandom = secureRandom;
     }
 
-    protected void setInsecureRandom(Random insecureRandom) {
-        this.insecureRandom = insecureRandom;
+    protected void setRandom(Random random) {
+        this.random = random;
     }
 
     public SecureRandom getSecureRandom() {
@@ -105,14 +105,14 @@ public abstract class NKeyProvider {
     }
 
     public Random getRandom() {
-        if (insecureRandom == null) {
+        if (random == null) {
             byte[] bytes = getSecureRandom().generateSeed(8);
             ByteBuffer buffer = ByteBuffer.allocate(Long.SIZE);
             buffer.put(bytes);
             buffer.flip();// need flip
-            insecureRandom = new Random(buffer.getLong()); // seed with 8 bytes (64 bits)
+            random = new Random(buffer.getLong()); // seed with 8 bytes (64 bits)
         }
-        return insecureRandom;
+        return random;
     }
 
     public NKey createPair(NKeyType type) {

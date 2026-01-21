@@ -1,10 +1,11 @@
-name: Build Main
-permissions:
-  contents: read
+name: Core Main Snapshot
+
 on:
   push:
     branches:
       - main
+    paths:
+      - 'core/**'
 
 jobs:
   build:
@@ -12,6 +13,9 @@ jobs:
       matrix:
         tc: [ 8, 17, 21, 25 ]
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./core
     env:
       BUILD_EVENT: ${{ github.event_name }}
       TARGET_COMPATIBILITY: ${{ matrix.tc }}
@@ -21,7 +25,7 @@ jobs:
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
     steps:
-      - name: Setup JDK
+      - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           java-version: 25
@@ -48,6 +52,9 @@ jobs:
   coveralls-finish:
     needs: build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./core
     steps:
       - name: Coveralls Finish
         uses: coverallsapp/github-action@v2

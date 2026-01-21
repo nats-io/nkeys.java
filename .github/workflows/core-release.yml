@@ -1,11 +1,8 @@
-name: Build Release
-permissions:
-  contents: read
+name: Core Publish Release
+
 on:
-  release:
-    branches:
-      - main
-    types: [released]
+  push:
+    tags: [ 'core/*' ]
 
 jobs:
   build:
@@ -13,8 +10,11 @@ jobs:
       matrix:
         tc: [ 8, 17, 21, 25 ]
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./core
     env:
-      BUILD_EVENT: ${{ github.event_name }}
+      BUILD_EVENT: "release"
       TARGET_COMPATIBILITY: ${{ matrix.tc }}
       OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
       OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
@@ -22,7 +22,7 @@ jobs:
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
     steps:
-      - name: Setup JDK
+      - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           java-version: 25
@@ -33,7 +33,5 @@ jobs:
           gradle-version: current
       - name: Check out code
         uses: actions/checkout@v4
-      - name: Prepare Gradle Script
-        run: chmod +x gradlew && ./gradlew
       - name: Build, Sign and Publish Release
-        run: ./gradlew clean compileJava publishToSonatype closeAndReleaseSonatypeStagingRepository
+        run: chmod +x gradlew && ./gradlew clean compileJava publishToSonatype closeAndReleaseSonatypeStagingRepository
