@@ -5,7 +5,6 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.IOException;
 import java.security.KeyPair;
 
 import static io.nats.nkey.NKeyConstants.ED25519_PUBLIC_KEYSIZE;
@@ -15,8 +14,11 @@ import static io.nats.nkey.NKeyInternalUtils.encodeSeed;
 
 @NullMarked
 public class RegularNKeyProvider extends NKeyProvider {
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public NKey createPair(NKeyType type, byte[] seed) throws IOException {
+    public NKey createPair(NKeyType type, byte[] seed) {
         Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(seed);
         Ed25519PublicKeyParameters publicKey = privateKey.generatePublicKey();
 
@@ -30,6 +32,10 @@ public class RegularNKeyProvider extends NKeyProvider {
         return new NKey(this, type, null, encoded);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public KeyPair getKeyPair(NKey nkey) {
         NKeyDecodedSeed decoded = nkey.getDecodedSeed();
         byte[] seedBytes = new byte[ED25519_SEED_SIZE];
@@ -44,6 +50,9 @@ public class RegularNKeyProvider extends NKeyProvider {
         return new KeyPair(new PublicKeyWrapper(publicKey), new PrivateKeyWrapper(privateKey));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public byte[] sign(NKey nkey, byte[] input) {
         Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(nkey.getKeyPair().getPrivate().getEncoded());
@@ -53,8 +62,11 @@ public class RegularNKeyProvider extends NKeyProvider {
         return signer.generateSignature();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public boolean verify(NKey nkey, byte[] input, byte[] signature) throws IOException {
+    public boolean verify(NKey nkey, byte[] input, byte[] signature) {
         Ed25519PublicKeyParameters publicKey;
         if (nkey.isPair()) {
             publicKey = new Ed25519PublicKeyParameters(nkey.getKeyPair().getPublic().getEncoded());

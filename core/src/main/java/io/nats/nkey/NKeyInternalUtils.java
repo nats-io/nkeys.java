@@ -68,44 +68,54 @@ public abstract class NKeyInternalUtils {
         return withoutPad;
     }
 
-    static char[] encode(NKeyType type, byte[] src) throws IOException {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    static char[] encode(NKeyType type, byte[] src){
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
-        bytes.write(type.prefix);
-        bytes.write(src);
+            bytes.write(type.prefix);
+            bytes.write(src);
 
-        int crc = crc16(bytes.toByteArray());
-        byte[] littleEndian = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort((short) crc).array();
+            int crc = crc16(bytes.toByteArray());
+            byte[] littleEndian = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort((short) crc).array();
 
-        bytes.write(littleEndian);
+            bytes.write(littleEndian);
 
-        char[] withPad = base32Encode(bytes.toByteArray());
-        return removePaddingAndClear(withPad);
+            char[] withPad = base32Encode(bytes.toByteArray());
+            return removePaddingAndClear(withPad);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    static char[] encodeSeed(NKeyType type, byte[] src) throws IOException {
+    static char[] encodeSeed(NKeyType type, byte[] src) {
         if (src.length != ED25519_PRIVATE_KEYSIZE && src.length != ED25519_SEED_SIZE) {
             throw new IllegalArgumentException("Source is not the correct size for an ED25519 seed");
         }
 
-        // In order to make this human printable for both bytes, we need to do a little
-        // bit manipulation to setup for base32 encoding which takes 5 bits at a time.
-        int b1 = PREFIX_BYTE_SEED | (type.prefix >> 5);
-        int b2 = (type.prefix & 31) << 3; // 31 = 00011111
+        try {
+            // In order to make this human printable for both bytes, we need to do a little
+            // bit manipulation to setup for base32 encoding which takes 5 bits at a time.
+            int b1 = PREFIX_BYTE_SEED | (type.prefix >> 5);
+            int b2 = (type.prefix & 31) << 3; // 31 = 00011111
 
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
-        bytes.write(b1);
-        bytes.write(b2);
-        bytes.write(src);
+            bytes.write(b1);
+            bytes.write(b2);
+            bytes.write(src);
 
-        int crc = crc16(bytes.toByteArray());
-        byte[] littleEndian = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort((short) crc).array();
+            int crc = crc16(bytes.toByteArray());
+            byte[] littleEndian = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort((short) crc).array();
 
-        bytes.write(littleEndian);
+            bytes.write(littleEndian);
 
-        char[] withPad = base32Encode(bytes.toByteArray());
-        return removePaddingAndClear(withPad);
+            char[] withPad = base32Encode(bytes.toByteArray());
+            return removePaddingAndClear(withPad);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static byte[] decode(char[] src) {

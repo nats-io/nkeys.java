@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
@@ -43,7 +42,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testAccount() throws Exception {
+    public void testAccount() {
         NKey theKey = PROVIDER.createAccount();
         assertNotNull(theKey);
 
@@ -77,7 +76,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testUser() throws Exception {
+    public void testUser() {
         NKey theKey = PROVIDER.createUser();
         assertNotNull(theKey);
 
@@ -111,7 +110,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testCluster() throws Exception {
+    public void testCluster() {
         NKey theKey = PROVIDER.createCluster();
         assertNotNull(theKey);
 
@@ -145,7 +144,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testOperator() throws Exception {
+    public void testOperator() {
         NKey theKey = PROVIDER.createOperator();
         assertNotNull(theKey);
 
@@ -179,7 +178,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testServer() throws Exception {
+    public void testServer() {
         NKey theKey = PROVIDER.createServer();
         assertNotNull(theKey);
 
@@ -213,7 +212,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testPublicOnly() throws Exception {
+    public void testPublicOnly() {
         NKey theKey = PROVIDER.createUser();
         assertNotNull(theKey);
 
@@ -288,7 +287,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testFromSeed() throws Exception {
+    public void testFromSeed() {
         NKey theKey = PROVIDER.createAccount();
         assertNotNull(theKey);
 
@@ -324,7 +323,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testBigSignVerify() throws Exception {
+    public void testBigSignVerify() {
         NKey theKey = PROVIDER.createAccount();
         assertNotNull(theKey);
 
@@ -364,7 +363,7 @@ public class LtsProviderTests {
         fmt.Printf("Signature: %q\n", encSig)
      */
     @Test
-    public void testInterop() throws Exception {
+    public void testInterop() {
         char[] seed = "SUAOXETHU4AZD2424VFDTDJ4TOEUSGZIXMRS6F3MSCMHUUORYHNEVM6ADE".toCharArray();
         char[] publicKey = "UB2YRJYJEFC5GZA5I47TCYYBIXQRAUA6B3MC4SR2WTXNUX6MTYM6BTBP".toCharArray();
         char[] privateKey = "PDVZEZ5HAGI6XGXFJI4Y2PE3RFERWKF3EMXRO3EQTB5FDUOB3JFLG5MIU4ESCROTMQOUOPZRMMAULYIQKAPA5WBOJI5LJ3W2L7GJ4GPAINHQ".toCharArray();
@@ -413,7 +412,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testEquals() throws Exception {
+    public void testEquals() {
         NKey key = PROVIDER.createServer();
         //noinspection EqualsWithItself
         assertEquals(key, key);
@@ -435,7 +434,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testPublicKeyFromSeed() throws Exception {
+    public void testPublicKeyFromSeed() {
         // using nsc generated seeds for testing
         NKey pk = PROVIDER.fromSeed("SOAELH6NJCEK4HST5644G4HK7TOAFZGRRJHNM4EUKUY7PPNDLIKO5IH4JM".toCharArray());
         assertEquals("ODPWIBQJVIQ42462QAFI2RKJC4RZHCQSIVPRDDHWFCJAP52NRZK6Z2YC", new String(pk.getPublicKey()));
@@ -448,7 +447,7 @@ public class LtsProviderTests {
     }
 
     @Test
-    public void testFromPublicKey() throws Exception {
+    public void testFromPublicKey() {
         _testFromPublicKey("SUAHBVFYZF3DIEO4UIHIZMJICVLURLBM5JJPK7GSVGP2QUC3NZ323BRE6A", "UCM5BG6AAZSEGREBCLG7PG4GFQNJABSAVIXC6VWS7TDHZFPIYFVYHIDG");
         _testFromPublicKey("SAADARCQJ3JA737Z443YNAZBNJNTFP7YNAF4QFUXKTBFBS4KAVK55DGSOQ", "AD2HQTUKOPBUGOPHA6KFRE6ZW5TH43D7P7E56OAQBZQLW2ECMNML6MVA");
         _testFromPublicKey("SNAH645525YA4PNXHWWS46VNXXQTYAXOPKGHXYAHXZZ43XTDDG2ZQAX7LY", "NBZCD2OSMSDRVYCAI77HUN6A2WNDWNT2DMVVEW66DHNWCDXVOUWRCCK7");
@@ -456,7 +455,7 @@ public class LtsProviderTests {
         _testFromPublicKey("SCAP4LGVURDWVL37AZIM5O47UKANFI6FKBY77HMYF55CKW2XFKLNUBTTFE", "CAO36T42KFA2LMIZ6YHJKPQEJWT5ULYSV633FWBCEJ7MREZPHHC56BSC");
     }
 
-    private static void _testFromPublicKey(String userEncodedSeed, String userEncodedPubKey) throws IOException {
+    private static void _testFromPublicKey(String userEncodedSeed, String userEncodedPubKey) {
         NKey fromSeed = PROVIDER.fromSeed(userEncodedSeed.toCharArray());
         NKey fromKey = PROVIDER.fromPublicKey(fromSeed.getPublicKey());
 

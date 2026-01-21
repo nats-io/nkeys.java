@@ -16,7 +16,6 @@ package io.nats.nkey;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
@@ -90,14 +89,12 @@ public abstract class NKeyProvider {
 
     protected NKeyProvider() {}
 
-    protected NKeyProvider setSecureRandom(SecureRandom secureRandom) {
+    protected void setSecureRandom(SecureRandom secureRandom) {
         this.secureRandom = secureRandom;
-        return this;
     }
 
-    protected NKeyProvider setInsecureRandom(Random insecureRandom) {
+    protected void setInsecureRandom(Random insecureRandom) {
         this.insecureRandom = insecureRandom;
-        return this;
     }
 
     public SecureRandom getSecureRandom() {
@@ -118,22 +115,21 @@ public abstract class NKeyProvider {
         return insecureRandom;
     }
 
-    public NKey createPair(NKeyType type) throws IOException {
+    public NKey createPair(NKeyType type) {
         byte[] seed = new byte[ED25519_SEED_SIZE];
         getSecureRandom().nextBytes(seed);
         return createPair(type, seed);
     }
 
-    public abstract NKey createPair(NKeyType type, byte[] seed) throws IOException;
+    public abstract NKey createPair(NKeyType type, byte[] seed);
 
     /**
      * Create an Account NKey from the provided random number generator.
      * If no random is provided, SecureRandom() will be used to create one.
      * The new NKey contains the private seed, which should be saved in a secure location.
      * @return the new NKey
-     * @throws IOException if the seed cannot be encoded to a string
      */
-    public NKey createAccount() throws IOException {
+    public NKey createAccount() {
         return createPair(NKeyType.ACCOUNT);
     }
 
@@ -142,9 +138,8 @@ public abstract class NKeyProvider {
      * If no random is provided, SecureRandom() will be used to create one.
      * The new NKey contains the private seed, which should be saved in a secure location.
      * @return the new NKey
-     * @throws IOException if the seed cannot be encoded to a string
      */
-    public NKey createCluster() throws IOException {
+    public NKey createCluster() {
         return createPair(NKeyType.CLUSTER);
     }
 
@@ -153,9 +148,8 @@ public abstract class NKeyProvider {
      * If no random is provided, SecureRandom() will be used to create one.
      * The new NKey contains the private seed, which should be saved in a secure location.
      * @return the new NKey
-     * @throws IOException if the seed cannot be encoded to a string
      */
-    public NKey createOperator() throws IOException {
+    public NKey createOperator() {
         return createPair(NKeyType.OPERATOR);
     }
 
@@ -164,9 +158,8 @@ public abstract class NKeyProvider {
      * If no random is provided, SecureRandom() will be used to create one.
      * The new NKey contains the private seed, which should be saved in a secure location.
      * @return the new NKey
-     * @throws IOException if the seed cannot be encoded to a string
      */
-    public NKey createServer() throws IOException {
+    public NKey createServer() {
         return createPair(NKeyType.SERVER);
     }
 
@@ -175,9 +168,8 @@ public abstract class NKeyProvider {
      * If no random is provided, SecureRandom() will be used to create one.
      * The new NKey contains the private seed, which should be saved in a secure location.
      * @return the new NKey
-     * @throws IOException if the seed cannot be encoded to a string
      */
-    public NKey createUser() throws IOException {
+    public NKey createUser() {
         return createPair(NKeyType.USER);
     }
 
@@ -225,9 +217,24 @@ public abstract class NKeyProvider {
         }
     }
 
+    /**
+     * A Java security keypair that represents this NKey in Java security form.
+     * @return A Java security keypair that represents this NKey in Java security form.
+     */
     public abstract KeyPair getKeyPair(NKey nkey);
 
+    /**
+     * Sign arbitrary binary input.
+     * @param input the bytes to sign
+     * @return the signature for the input from the NKey
+     */
     public abstract byte[] sign(NKey nkey, byte[] input);
 
-    public abstract boolean verify(NKey nkey, byte[] input, byte[] signature) throws IOException;
+    /**
+     * Verify a signature.
+     * @param input     the bytes that were signed
+     * @param signature the bytes for the signature
+     * @return true if the signature matches this keys signature for the input.
+     */
+    public abstract boolean verify(NKey nkey, byte[] input, byte[] signature);
 }

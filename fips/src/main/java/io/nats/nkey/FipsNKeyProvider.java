@@ -1,29 +1,52 @@
 package io.nats.nkey;
 
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.jspecify.annotations.NullMarked;
+import sun.security.jca.JCAUtil;
 
-import java.io.IOException;
 import java.security.KeyPair;
+import java.security.Security;
 
 @NullMarked
 public class FipsNKeyProvider extends NKeyProvider {
-    @Override
-    public NKey createPair(NKeyType type, byte[] seed) throws IOException {
-        return null;
+    static {
+        // Register BC-FIPS provider
+        Security.addProvider(new BouncyCastleFipsProvider());
     }
 
+    public FipsNKeyProvider() {
+        setSecureRandom(JCAUtil.getDefSecureRandom());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NKey createPair(NKeyType type, byte[] seed) {
+        throw new UnsupportedOperationException("createPair not supported yet.");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public KeyPair getKeyPair(NKey nkey) {
-        return null;
+        throw new UnsupportedOperationException("getKeyPair not supported yet.");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public byte[] sign(NKey nkey, byte[] input) {
-        return new byte[0];
+        throw new UnsupportedOperationException("sign not supported yet.");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public boolean verify(NKey nkey, byte[] input, byte[] signature) throws IOException {
-        return false;
+    public boolean verify(NKey nkey, byte[] input, byte[] signature) {
+        throw new UnsupportedOperationException("verify not supported yet.");
     }
 }

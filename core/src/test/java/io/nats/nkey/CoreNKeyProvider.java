@@ -5,10 +5,7 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.IOException;
 import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 
 import static io.nats.nkey.NKeyConstants.ED25519_PUBLIC_KEYSIZE;
 import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
@@ -16,9 +13,10 @@ import static io.nats.nkey.NKeyInternalUtils.decode;
 import static io.nats.nkey.NKeyInternalUtils.encodeSeed;
 
 @NullMarked
-public class TestNKeyProvider extends NKeyProvider {
+public class CoreNKeyProvider extends NKeyProvider {
+
     @Override
-    public NKey createPair(NKeyType type, byte[] seed) throws IOException {
+    public NKey createPair(NKeyType type, byte[] seed) {
         Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(seed);
         Ed25519PublicKeyParameters publicKey = privateKey.generatePublicKey();
 
@@ -32,34 +30,7 @@ public class TestNKeyProvider extends NKeyProvider {
         return new NKey(this, type, null, encoded);
     }
 
-    static class PublicKeyWrapper extends KeyWrapper implements PublicKey {
-
-        final Ed25519PublicKeyParameters publicKey;
-
-        public PublicKeyWrapper(Ed25519PublicKeyParameters publicKey) {
-            this.publicKey = publicKey;
-        }
-
-        @Override
-        public byte[] getEncoded() {
-            return publicKey.getEncoded();
-        }
-    }
-
-    static class PrivateKeyWrapper extends KeyWrapper implements PrivateKey {
-
-        final Ed25519PrivateKeyParameters privateKey;
-
-        public PrivateKeyWrapper(Ed25519PrivateKeyParameters privateKey) {
-            this.privateKey = privateKey;
-        }
-
-        @Override
-        public byte[] getEncoded() {
-            return privateKey.getEncoded();
-        }
-    }
-
+    @Override
     public KeyPair getKeyPair(NKey nkey) {
         NKeyDecodedSeed decoded = nkey.getDecodedSeed();
         byte[] seedBytes = new byte[ED25519_SEED_SIZE];
@@ -71,7 +42,7 @@ public class TestNKeyProvider extends NKeyProvider {
         Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(seedBytes);
         Ed25519PublicKeyParameters publicKey = new Ed25519PublicKeyParameters(pubBytes);
 
-        return new KeyPair(new PublicKeyWrapper(publicKey), new PrivateKeyWrapper(privateKey));
+        return new KeyPair(new CorePublicKeyWrapper(publicKey), new CorePrivateKeyWrapper(privateKey));
     }
 
     @Override
@@ -84,7 +55,7 @@ public class TestNKeyProvider extends NKeyProvider {
     }
 
     @Override
-    public boolean verify(NKey nkey, byte[] input, byte[] signature) throws IOException {
+    public boolean verify(NKey nkey, byte[] input, byte[] signature) {
         Ed25519PublicKeyParameters publicKey;
         if (nkey.isPair()) {
             publicKey = new Ed25519PublicKeyParameters(nkey.getKeyPair().getPublic().getEncoded());

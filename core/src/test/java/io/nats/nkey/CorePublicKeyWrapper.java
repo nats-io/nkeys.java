@@ -13,20 +13,20 @@
 
 package io.nats.nkey;
 
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 
-import java.security.PrivateKey;
+import java.security.PublicKey;
 
-class PrivateKeyWrapper extends KeyWrapper implements PrivateKey {
+class CorePublicKeyWrapper extends KeyWrapper implements PublicKey {
 
-    final Ed25519PrivateKeyParameters privateKey;
+    final Ed25519PublicKeyParameters publicKey;
 
-    public PrivateKeyWrapper(Ed25519PrivateKeyParameters privateKey) {
-        this.privateKey = privateKey;
+    public CorePublicKeyWrapper(Ed25519PublicKeyParameters publicKey) {
+        this.publicKey = publicKey;
     }
 
     @Override
     public byte[] getEncoded() {
-        return privateKey.getEncoded();
+        return publicKey.getEncoded();
     }
 }

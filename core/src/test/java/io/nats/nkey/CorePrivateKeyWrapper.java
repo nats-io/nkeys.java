@@ -17,11 +17,11 @@ import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 
 import java.security.PrivateKey;
 
-class PrivateKeyWrapper extends KeyWrapper implements PrivateKey {
+class CorePrivateKeyWrapper extends KeyWrapper implements PrivateKey {
 
     final Ed25519PrivateKeyParameters privateKey;
 
-    public PrivateKeyWrapper(Ed25519PrivateKeyParameters privateKey) {
+    public CorePrivateKeyWrapper(Ed25519PrivateKeyParameters privateKey) {
         this.privateKey = privateKey;
     }
 

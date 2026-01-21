@@ -13,7 +13,6 @@
 
 package io.nats.nkey;
 
-import java.io.IOException;
 import java.security.KeyPair;
 import java.util.Arrays;
 
@@ -98,9 +97,8 @@ public class NKey {
 
     /**
      * @return the encoded public key for this NKey
-     * @throws IOException if there is a problem encoding the public key
      */
-    public char[] getPublicKey() throws IOException {
+    public char[] getPublicKey() {
         if (publicKey != null) {
             return publicKey;
         }
@@ -109,9 +107,8 @@ public class NKey {
 
     /**
      * @return the encoded private key for this NKey
-     * @throws IOException if there is a problem encoding the key
      */
-    public char[] getPrivateKey() throws IOException {
+    public char[] getPrivateKey() {
         NKeyDecodedSeed decoded = getDecodedSeed();
         return encode(NKeyType.PRIVATE, decoded.bytes);
     }
@@ -145,9 +142,8 @@ public class NKey {
      * @param input     the bytes that were signed
      * @param signature the bytes for the signature
      * @return true if the signature matches this keys signature for the input.
-     * @throws IOException if there is a problem reading the data
      */
-    public boolean verify(byte[] input, byte[] signature) throws IOException {
+    public boolean verify(byte[] input, byte[] signature) {
         return provider.verify(this, input, signature);
     }
 

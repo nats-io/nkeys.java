@@ -16,7 +16,6 @@ package io.nats.nkey;
 import io.ResourceUtils;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -134,7 +133,7 @@ public class UtilsTests {
         try {
             encoded = encode(NKeyType.ACCOUNT, bytes);
         }
-        catch (IOException e) {
+        catch (RuntimeException e) {
             fail();
         }
         char[] fEncoded = encoded;

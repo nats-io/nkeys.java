@@ -48,12 +48,20 @@ public enum NKeyType {
      */
     PRIVATE(PREFIX_BYTE_PRIVATE);
 
+    /**
+     * The prefix
+     */
     public final int prefix;
 
     NKeyType(int prefix) {
         this.prefix = prefix;
     }
 
+    /**
+     * get the NKeyType from a prefix or null if unknown or invalid prefix
+     * @param prefix the prefix
+     * @return the NKeyType or null
+     */
     public static @Nullable NKeyType fromPrefix(int prefix) {
         switch (prefix) {
             case PREFIX_BYTE_ACCOUNT:

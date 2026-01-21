@@ -15,9 +15,14 @@ package io.nats.nkey;
 
 import static io.nats.nkey.NKeyInternalUtils.decode;
 
+/**
+ * General Utils
+ */
 public abstract class NKeyUtils {
+    private NKeyUtils() {} /* ensures cannot be constructed */
 
     /**
+     * Do the characters represent a valid public account key
      * @param src the encoded public key
      * @return true if the public key is an account public key
      * @throws IllegalArgumentException if is not a valid Account key
@@ -28,6 +33,7 @@ public abstract class NKeyUtils {
     }
 
     /**
+     * Do the characters represent a valid public cluster key
      * @param src the encoded public key
      * @return true if the public key is a cluster public key
      * @throws IllegalArgumentException if is not a valid Cluster key
@@ -38,6 +44,7 @@ public abstract class NKeyUtils {
     }
 
     /**
+     * Do the characters represent a valid public operator key
      * @param src the encoded public key
      * @return true if the public key is an operator public key
      * @throws IllegalArgumentException if is not a valid Operator key
@@ -48,6 +55,7 @@ public abstract class NKeyUtils {
     }
 
     /**
+     * Do the characters represent a valid public server key
      * @param src the encoded public key
      * @return true if the public key is a server public key
      * @throws IllegalArgumentException if is not a valid Server key
@@ -58,6 +66,7 @@ public abstract class NKeyUtils {
     }
 
     /**
+     * Do the characters represent a valid public user key
      * @param src the encoded public key
      * @return true if the public key is a user public key
      * @throws IllegalArgumentException if is not a valid User key
