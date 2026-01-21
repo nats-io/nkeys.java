@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Base64;
 
 import static io.nats.nkey.NKeyConstants.NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY;
+import static io.nats.nkey.NKeyProvider.getProvider;
 import static io.nats.nkey.NKeyUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
@@ -36,7 +37,7 @@ public class CoreProviderTests {
 
     @BeforeAll
     static void beforeAll() {
-        NKeyUtils.NKEY_PROVIDER_INSTANCE = null;
+        NKeyProvider.clearInstance();
         System.setProperty(NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY, "io.nats.nkey.TestNKeyProvider");
         PROVIDER = getProvider();
     }

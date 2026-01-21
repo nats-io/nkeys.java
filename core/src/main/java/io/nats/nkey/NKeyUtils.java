@@ -13,42 +13,9 @@
 
 package io.nats.nkey;
 
-import java.lang.reflect.Constructor;
-
-import static io.nats.nkey.NKeyConstants.NKEY_PROVIDER_CLASS_ENVIRONMENT_VAR;
-import static io.nats.nkey.NKeyConstants.NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY;
 import static io.nats.nkey.NKeyInternalUtils.decode;
 
 public abstract class NKeyUtils {
-
-    static NKeyProvider NKEY_PROVIDER_INSTANCE;
-
-    /**
-     * Get the NKeyProvider
-     * @return the NKeyProvider instance
-     * @throws RuntimeException wrapping any exception
-     */
-    public static NKeyProvider getProvider() {
-        if (NKEY_PROVIDER_INSTANCE == null) {
-            try {
-                String className = System.getenv(NKEY_PROVIDER_CLASS_ENVIRONMENT_VAR);
-                if (className == null) {
-                    className = System.getProperty(NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY);
-                }
-                if (className == null) {
-                    throw new IllegalArgumentException("NKeyProvider class environment variable or system property is not set.");
-                }
-
-                Class<?> clazz = Class.forName(className);
-                Constructor<?> constructor = clazz.getConstructor();
-                NKEY_PROVIDER_INSTANCE = (NKeyProvider) constructor.newInstance();
-            }
-            catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return NKEY_PROVIDER_INSTANCE;
-    }
 
     /**
      * @param src the encoded public key

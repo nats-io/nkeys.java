@@ -17,22 +17,88 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import static io.nats.nkey.NKeyConstants.ED25519_PRIVATE_KEYSIZE;
-import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
+import static io.nats.nkey.NKeyConstants.*;
 import static io.nats.nkey.NKeyInternalUtils.*;
 
 @NullMarked
 public abstract class NKeyProvider {
 
+    private static @Nullable NKeyProvider NKEY_PROVIDER_INSTANCE;
+
+    /**
+     * Get the static instance NKeyProvider
+     * @return the NKeyProvider instance
+     * @throws RuntimeException wrapping any exception
+     */
+    public static NKeyProvider getProvider() {
+        if (NKEY_PROVIDER_INSTANCE == null) {
+            try {
+                String className = System.getenv(NKEY_PROVIDER_CLASS_ENVIRONMENT_VAR);
+                if (className == null) {
+                    className = System.getProperty(NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY);
+                }
+                if (className == null) {
+                    throw new IllegalArgumentException("NKeyProvider class environment variable or system property is not set.");
+                }
+                NKEY_PROVIDER_INSTANCE = getProvider(className);
+            }
+            catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return NKEY_PROVIDER_INSTANCE;
+    }
+
+    /**
+     * Get a new NKeyProvider instance
+     * @param className the class name used by Class.forName
+     * @return an NKeyProvider instance
+     * @throws ClassNotFoundException if the class cannot be located
+     * @throws NoSuchMethodException if a matching constructor is not found,
+     *         including when this {@code Class} object represents
+     *         an interface, a primitive type, an array class, or void.
+     * @throws InstantiationException if the class that declares the
+     *         underlying constructor represents an abstract class.
+     * @throws InvocationTargetException if the underlying constructor
+     *         throws an exception.
+     * @throws ExceptionInInitializerError if the initialization provoked
+     *         by this method fails.
+     */
+    public static NKeyProvider getProvider(String className) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class<?> clazz = Class.forName(className);
+        Constructor<?> constructor = clazz.getConstructor();
+        return (NKeyProvider) constructor.newInstance();
+    }
+
+    /**
+     * Clear the current instance of the provider.
+     * Forces the static instance to be reset and re-made when calling getProvider
+     */
+    public static void clearInstance() {
+        NKEY_PROVIDER_INSTANCE = null;
+    }
+
     protected @Nullable SecureRandom secureRandom;
     protected @Nullable Random insecureRandom;
 
     protected NKeyProvider() {}
+
+    protected NKeyProvider setSecureRandom(SecureRandom secureRandom) {
+        this.secureRandom = secureRandom;
+        return this;
+    }
+
+    protected NKeyProvider setInsecureRandom(Random insecureRandom) {
+        this.insecureRandom = insecureRandom;
+        return this;
+    }
 
     public SecureRandom getSecureRandom() {
         if (secureRandom == null) {

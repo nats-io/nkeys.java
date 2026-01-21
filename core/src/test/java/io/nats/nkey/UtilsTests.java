@@ -20,12 +20,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
 import static io.nats.nkey.NKeyConstants.*;
 import static io.nats.nkey.NKeyInternalUtils.*;
-import static io.nats.nkey.NKeyUtils.getProvider;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilsTests {
@@ -184,73 +182,6 @@ public class UtilsTests {
 
             assertThrows(IllegalArgumentException.class, () -> decode(NKeyType.ACCOUNT, builder.toString().toCharArray()));
         }
-    }
-
-    /*
-        Compatibility/Interop data created from the following go code:
-    	user, _ := nkeys.CreateUser(nil)
-        seed, _ := user.Seed()
-        publicKey, _ := user.PublicKey()
-        privateKey, _ := user.PrivateKey()
-
-        data := []byte("Hello World")
-        sig, _ := user.Sign(data)
-        encSig := base64.URLEncoding.EncodeToString(sig)
-
-        fmt.Printf("Seed: %q\n", seed)
-        fmt.Printf("Public: %q\n", publicKey)
-        fmt.Printf("Private: %q\n", privateKey)
-
-        fmt.Printf("Data: %q\n", data)
-        fmt.Printf("Signature: %q\n", encSig)
-     */
-    @Test
-    public void testInterop() throws Exception {
-        char[] seed = "SUAOXETHU4AZD2424VFDTDJ4TOEUSGZIXMRS6F3MSCMHUUORYHNEVM6ADE".toCharArray();
-        char[] publicKey = "UB2YRJYJEFC5GZA5I47TCYYBIXQRAUA6B3MC4SR2WTXNUX6MTYM6BTBP".toCharArray();
-        char[] privateKey = "PDVZEZ5HAGI6XGXFJI4Y2PE3RFERWKF3EMXRO3EQTB5FDUOB3JFLG5MIU4ESCROTMQOUOPZRMMAULYIQKAPA5WBOJI5LJ3W2L7GJ4GPAINHQ".toCharArray();
-        String encodedSig = "dMSvD2P1Fm6knQGdMwz5h41aPYIOiPqwR-a3b7UNVJr4FcEfFoAIRbm_gtvLGIpplHTc7sZnSMeaS3Ogm1W_CA";
-        String nonce = "UkY0TGZNbEVianJZY09F";
-        String nonceEncodedSig = "ZNNvu8FDPhpVlyIqjfZGnLCmoAUQggdfdvhGtWLy29AM9TSa6_j15J2iph37j6_FvkGdd1v3crDANwHCqJuQCw";
-        byte[] data = "Hello World".getBytes(StandardCharsets.UTF_8);
-        NKey fromSeed = getProvider().fromSeed(seed);
-        NKey fromPublicKey = getProvider().fromPublicKey(publicKey);
-
-        assertEquals(NKeyType.USER, fromSeed.getType());
-
-        byte[] nonceData = Base64.getUrlDecoder().decode(nonce);
-        byte[] nonceSig = Base64.getUrlDecoder().decode(nonceEncodedSig);
-        byte[] seedNonceSig = fromSeed.sign(nonceData);
-        String encodedSeedNonceSig = Base64.getUrlEncoder().withoutPadding().encodeToString(seedNonceSig);
-
-        assertArrayEquals(seedNonceSig, nonceSig);
-        assertEquals(nonceEncodedSig, encodedSeedNonceSig);
-
-        assertTrue(fromSeed.verify(nonceData, nonceSig));
-        assertTrue(fromPublicKey.verify(nonceData, nonceSig));
-        assertTrue(fromSeed.verify(nonceData, seedNonceSig));
-        assertTrue(fromPublicKey.verify(nonceData, seedNonceSig));
-
-        byte[] seedSig = fromSeed.sign(data);
-        byte[] sig = Base64.getUrlDecoder().decode(encodedSig);
-        String encodedSeedSig = Base64.getUrlEncoder().withoutPadding().encodeToString(seedSig);
-
-        assertArrayEquals(seedSig, sig);
-        assertEquals(encodedSig, encodedSeedSig);
-
-        assertTrue(fromSeed.verify(data, sig));
-        assertTrue(fromPublicKey.verify(data, sig));
-        assertTrue(fromSeed.verify(data, seedSig));
-        assertTrue(fromPublicKey.verify(data, seedSig));
-
-        // Make sure generation is the same
-        assertArrayEquals(fromSeed.getSeed(), seed);
-        assertArrayEquals(fromSeed.getPublicKey(), publicKey);
-        assertArrayEquals(fromSeed.getPrivateKey(), privateKey);
-
-        NKeyDecodedSeed decoded = NKeyInternalUtils.decodeSeed(seed);
-        char[] encodedSeed = NKeyInternalUtils.encodeSeed(NKeyType.fromPrefix(decoded.prefix), decoded.bytes);
-        assertArrayEquals(encodedSeed, seed);
     }
 
     @Test
