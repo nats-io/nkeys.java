@@ -1,5 +1,6 @@
 name: Core Main Snapshot
-
+permissions:
+  contents: read
 on:
   push:
     branches:
