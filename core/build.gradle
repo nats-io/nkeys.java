@@ -15,10 +15,10 @@ group = 'io.nats.nkeys'
 
 def isRelease = System.getenv("BUILD_EVENT") == "release"
 def tc = System.getenv("TARGET_COMPATIBILITY")
-def targetJavaVersion = tc == null ? JavaVersion.VERSION_1_8 : JavaVersion.toVersion(tc)
+def targetJavaVersion = tc == null ? JavaVersion.VERSION_17 : JavaVersion.toVersion(tc)
 def targetId = targetJavaVersion.toString()
-def artifact = "core" + (targetJavaVersion == JavaVersion.VERSION_1_8 ? "" : "-jdk" + targetId)
-def bundleName = "io.nats.nkeys.core" + (targetJavaVersion == JavaVersion.VERSION_1_8 ? "" : ".jdk" + targetId)
+def artifact = "core-jdk" + targetId
+def bundleName = "io.nats.nkeys.core.jdk" + targetId
 
 System.out.println("target compatibility: Java " + targetJavaVersion)
 System.out.println("artifact id         : " + artifact)
@@ -27,7 +27,7 @@ System.out.println("bundle name         : " + bundleName)
 version = isRelease ? jarVersion : jarVersion + "-SNAPSHOT" // version is the variable the gradle uses.
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = targetJavaVersion
     withSourcesJar()
     withJavadocJar()

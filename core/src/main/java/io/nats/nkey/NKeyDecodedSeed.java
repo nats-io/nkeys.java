@@ -13,10 +13,26 @@
 
 package io.nats.nkey;
 
+/**
+ * A decoded version of the NKey seed
+ * Used for internal and NKeyProvider implementations, not really intended to be public
+ */
 public class NKeyDecodedSeed {
+    /**
+     * The prefix
+     */
     public final int prefix;
+
+    /**
+     * The bytes
+     */
     public final byte[] bytes;
 
+    /**
+     * Construct an NKeyDecodedSeed
+     * @param prefix the prefix
+     * @param bytes the bytes
+     */
     public NKeyDecodedSeed(int prefix, byte[] bytes) {
         this.prefix = prefix;
         this.bytes = bytes;

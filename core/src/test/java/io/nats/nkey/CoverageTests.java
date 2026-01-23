@@ -13,6 +13,7 @@
 
 package io.nats.nkey;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.security.KeyPair;
@@ -58,22 +59,24 @@ public class CoverageTests {
     public void testSetRandoms() {
         NKeyProvider p = new NKeyProvider() {
             @Override
-            public NKey createPair(NKeyType type, byte[] seed) {
-                return null;
+            @NonNull
+            public NKey createNKey(@NonNull NKeyType type, byte @NonNull [] seed) {
+                throw new UnsupportedOperationException();
             }
 
             @Override
-            public KeyPair getKeyPair(NKey nkey) {
-                return null;
+            @NonNull
+            public KeyPair getKeyPair(@NonNull NKey nkey) {
+                throw new UnsupportedOperationException();
             }
 
             @Override
-            public byte[] sign(NKey nkey, byte[] input) {
+            public byte @NonNull [] sign(@NonNull NKey nkey, byte @NonNull [] input) {
                 return new byte[0];
             }
 
             @Override
-            public boolean verify(NKey nkey, byte[] input, byte[] signature) {
+            public boolean verify(@NonNull NKey nkey, byte @NonNull [] input, byte @NonNull [] signature) {
                 return false;
             }
         };

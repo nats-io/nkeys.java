@@ -13,36 +13,73 @@
 
 package io.nats.nkey;
 
+/**
+ * Constants use in the NKey project
+ */
 public interface NKeyConstants {
+    /**
+     * name of system property used for NKeyProvider class
+     */
     String NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY = "nkey.provider.class";
+
+    /**
+     * name of environment variable used for NKeyProvider class
+     */
     String NKEY_PROVIDER_CLASS_ENVIRONMENT_VAR = "NKEY_PROVIDER_CLASS";
 
-    // PrefixByteSeed is the prefix byte used for encoded NATS Seeds
+    /**
+     * PREFIX_BYTE_SEED is the prefix byte used for encoded NATS Seeds
+     */
     int PREFIX_BYTE_SEED = 18 << 3; // Base32-encodes to 'S...'
 
-    // PrefixBytePrivate is the prefix byte used for encoded NATS Private keys
+    /**
+     * PREFIX_BYTE_PRIVATE is the prefix byte used for encoded NATS Private keys
+     */
     int PREFIX_BYTE_PRIVATE = 15 << 3; // Base32-encodes to 'P...'
 
-    // PrefixByteServer is the prefix byte used for encoded NATS Servers
+    /**
+     * PREFIX_BYTE_SERVER is the prefix byte used for encoded NATS Servers
+     */
     int PREFIX_BYTE_SERVER = 13 << 3; // Base32-encodes to 'N...'
 
-    // PrefixByteCluster is the prefix byte used for encoded NATS Clusters
+    /**
+     * PREFIX_BYTE_CLUSTER is the prefix byte used for encoded NATS Clusters
+     */
     int PREFIX_BYTE_CLUSTER = 2 << 3; // Base32-encodes to 'C...'
 
-    // PrefixByteAccount is the prefix byte used for encoded NATS Accounts
+    /**
+     * PREFIX_BYTE_ACCOUNT is the prefix byte used for encoded NATS Accounts
+     */
     int PREFIX_BYTE_ACCOUNT = 0; // Base32-encodes to 'A...'
 
-    // PrefixByteUser is the prefix byte used for encoded NATS Users
+    /**
+     * PREFIX_BYTE_USER is the prefix byte used for encoded NATS Users
+     */
     int PREFIX_BYTE_USER = 20 << 3; // Base32-encodes to 'U...'
 
-    // PrefixByteOperator is the prefix byte used for encoded NATS Operators
+    /**
+     * PREFIX_BYTE_OPERATOR is the prefix byte used for encoded NATS Operators
+     */
     int PREFIX_BYTE_OPERATOR = 14 << 3; // Base32-encodes to 'O...'
 
+    /**
+     * Number of bytes in the public key
+     */
     int ED25519_PUBLIC_KEYSIZE = 32;
+
+    /**
+     * Number of bytes in the private key
+     */
     int ED25519_PRIVATE_KEYSIZE = 64;
+
+    /**
+     * Number of bytes in the seed
+     */
     int ED25519_SEED_SIZE = 32;
 
-    // XModem CRC based on the go version of NKeys
+    /**
+     * XModem CRC based on the go version of NKeys
+     */
     int[] CRC_16_TABLE = { 0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, 0x8108,
         0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef, 0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294,
         0x72f7, 0x62d6, 0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de, 0x2462, 0x3443, 0x0420,

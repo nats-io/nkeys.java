@@ -23,7 +23,7 @@ import java.util.Arrays;
 
 import static io.nats.nkey.NKeyConstants.*;
 
-public abstract class NKeyInternalUtils {
+abstract class NKeyInternalUtils {
     private NKeyInternalUtils() {} /* ensures cannot be constructed */
 
     private static final String BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
