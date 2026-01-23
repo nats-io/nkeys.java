@@ -2,10 +2,8 @@ package io.nats.nkey;
 
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.jspecify.annotations.NullMarked;
-import sun.security.jca.JCAUtil;
 
-import java.security.KeyPair;
-import java.security.Security;
+import java.security.*;
 
 @NullMarked
 public class FipsNKeyProvider extends NKeyProvider {
@@ -15,14 +13,19 @@ public class FipsNKeyProvider extends NKeyProvider {
     }
 
     public FipsNKeyProvider() {
-        setSecureRandom(JCAUtil.getDefSecureRandom());
+        try {
+            setSecureRandom(SecureRandom.getInstance("DEFAULT", "BCFIPS"));
+        }
+        catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NKey createPair(NKeyType type, byte[] seed) {
+    public NKey createNKey(NKeyType type, byte[] seed) {
         throw new UnsupportedOperationException("createPair not supported yet.");
     }
 
@@ -31,6 +34,7 @@ public class FipsNKeyProvider extends NKeyProvider {
      */
     @Override
     public KeyPair getKeyPair(NKey nkey) {
+        nkey.ensurePair();
         throw new UnsupportedOperationException("getKeyPair not supported yet.");
     }
 
