@@ -22,6 +22,7 @@ def bundleName = "io.nats.nkeys.bc" + (targetJavaVersion == JavaVersion.VERSION_
 
 System.out.println("targetCompatibility: " + targetId)
 System.out.println("artifact: " + artifact)
+System.out.println("core: " + coreName)
 System.out.println("bundleName: " + bundleName)
 
 version = isRelease ? jarVersion : jarVersion + "-SNAPSHOT" // version is the variable the gradle uses.
