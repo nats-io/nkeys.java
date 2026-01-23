@@ -26,10 +26,15 @@ import java.util.Random;
 import static io.nats.nkey.NKeyConstants.*;
 import static io.nats.nkey.NKeyInternalUtils.*;
 
+/**
+ * The NKeyProvider is the central object in this package.
+ * It provides the base to use a specific security library to implement the requirements for NKeys
+ */
 @NullMarked
 public abstract class NKeyProvider {
 
-    private static @Nullable NKeyProvider NKEY_PROVIDER_INSTANCE;
+    @Nullable
+    private static NKeyProvider NKEY_PROVIDER_INSTANCE;
 
     /**
      * Get the static instance NKeyProvider
@@ -56,6 +61,11 @@ public abstract class NKeyProvider {
     }
 
     /**
+     * The default constructor does nothing
+     */
+    protected NKeyProvider() {}
+
+    /**
      * Get a new NKeyProvider instance
      * @param className the class name used by Class.forName
      * @return an NKeyProvider instance
@@ -69,6 +79,9 @@ public abstract class NKeyProvider {
      *         throws an exception.
      * @throws ExceptionInInitializerError if the initialization provoked
      *         by this method fails.
+     * @throws IllegalAccessException if this {@code Constructor} object
+     *         is enforcing Java language access control and the underlying
+     *         constructor is inaccessible.
      */
     public static NKeyProvider getProvider(String className) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Class<?> clazz = Class.forName(className);
@@ -84,19 +97,38 @@ public abstract class NKeyProvider {
         NKEY_PROVIDER_INSTANCE = null;
     }
 
-    protected @Nullable SecureRandom secureRandom;
-    protected @Nullable Random random;
+    /**
+     * the variable used to hold the SecureRandom
+     */
+    @Nullable
+    private SecureRandom secureRandom;
 
-    protected NKeyProvider() {}
+    /**
+     * the variable used to hold the insecure Random
+     */
+    @Nullable
+    private Random random;
 
+    /**
+     * Set the SecureRandom
+     * @param secureRandom the SecureRandom
+     */
     protected void setSecureRandom(SecureRandom secureRandom) {
         this.secureRandom = secureRandom;
     }
 
+    /**
+     * Set the insecure Random
+     * @param random the Random
+     */
     protected void setRandom(Random random) {
         this.random = random;
     }
 
+    /**
+     * Get the SecureRandom instance for this provider.
+     * @return the SecureRandom
+     */
     public SecureRandom getSecureRandom() {
         if (secureRandom == null) {
             secureRandom = new SecureRandom();
@@ -104,6 +136,10 @@ public abstract class NKeyProvider {
         return secureRandom;
     }
 
+    /**
+     * Get the insecure Random instance for this provider.
+     * @return the Random
+     */
     public Random getRandom() {
         if (random == null) {
             byte[] bytes = getSecureRandom().generateSeed(8);
@@ -115,13 +151,24 @@ public abstract class NKeyProvider {
         return random;
     }
 
-    public NKey createPair(NKeyType type) {
+    /**
+     * Create an NKey of the NKeyType with a generated seed
+     * @param type the NKeyType
+     * @return the NKey
+     */
+    protected NKey createNKey(NKeyType type) {
         byte[] seed = new byte[ED25519_SEED_SIZE];
         getSecureRandom().nextBytes(seed);
-        return createPair(type, seed);
+        return createNKey(type, seed);
     }
 
-    public abstract NKey createPair(NKeyType type, byte[] seed);
+    /**
+     * Create an NKey of the NKeyType using the provided seed
+     * @param type the NKeyType
+     * @param seed the seed
+     * @return the NKey
+     */
+    protected abstract NKey createNKey(NKeyType type, byte[] seed);
 
     /**
      * Create an Account NKey from the provided random number generator.
@@ -130,7 +177,7 @@ public abstract class NKeyProvider {
      * @return the new NKey
      */
     public NKey createAccount() {
-        return createPair(NKeyType.ACCOUNT);
+        return createNKey(NKeyType.ACCOUNT);
     }
 
     /**
@@ -140,7 +187,7 @@ public abstract class NKeyProvider {
      * @return the new NKey
      */
     public NKey createCluster() {
-        return createPair(NKeyType.CLUSTER);
+        return createNKey(NKeyType.CLUSTER);
     }
 
     /**
@@ -150,7 +197,7 @@ public abstract class NKeyProvider {
      * @return the new NKey
      */
     public NKey createOperator() {
-        return createPair(NKeyType.OPERATOR);
+        return createNKey(NKeyType.OPERATOR);
     }
 
     /**
@@ -160,7 +207,7 @@ public abstract class NKeyProvider {
      * @return the new NKey
      */
     public NKey createServer() {
-        return createPair(NKeyType.SERVER);
+        return createNKey(NKeyType.SERVER);
     }
 
     /**
@@ -170,7 +217,7 @@ public abstract class NKeyProvider {
      * @return the new NKey
      */
     public NKey createUser() {
-        return createPair(NKeyType.USER);
+        return createNKey(NKeyType.USER);
     }
 
     /**
@@ -207,7 +254,7 @@ public abstract class NKeyProvider {
             if (t == null) {
                 throw new IllegalArgumentException("Seed contains invalid or unknown prefix");
             }
-            return createPair(t, decoded.bytes);
+            return createNKey(t, decoded.bytes);
         }
         catch (IllegalArgumentException e) {
             throw e;
@@ -219,12 +266,14 @@ public abstract class NKeyProvider {
 
     /**
      * A Java security keypair that represents this NKey in Java security form.
+     * @param nkey the NKey to get the KeyPair from
      * @return A Java security keypair that represents this NKey in Java security form.
      */
     public abstract KeyPair getKeyPair(NKey nkey);
 
     /**
      * Sign arbitrary binary input.
+     * @param nkey the NKey to use to sign
      * @param input the bytes to sign
      * @return the signature for the input from the NKey
      */
@@ -232,6 +281,7 @@ public abstract class NKeyProvider {
 
     /**
      * Verify a signature.
+     * @param nkey      the NKey to use to verify
      * @param input     the bytes that were signed
      * @param signature the bytes for the signature
      * @return true if the signature matches this keys signature for the input.

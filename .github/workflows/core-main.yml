@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        tc: [ 8, 17, 21, 25 ]
+        tc: [ 17, 21, 25 ]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -62,4 +62,4 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
-          carryforward: "tc8"
+          carryforward: "tc17"

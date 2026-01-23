@@ -19,6 +19,9 @@ import java.util.Arrays;
 import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
 import static io.nats.nkey.NKeyInternalUtils.*;
 
+/**
+ * The NKey class
+ */
 public class NKey {
 
     private final NKeyProvider provider;
@@ -35,9 +38,16 @@ public class NKey {
 
     private final NKeyType type;
 
-    public NKey(NKeyProvider provider, NKeyType t, char[] publicKey, char[] privateKey) {
+    /**
+     * Construct an NKey
+     * @param provider the NKeyProvider
+     * @param type the NKeyType
+     * @param publicKey the public key characters
+     * @param privateKey the private key characters
+     */
+    public NKey(NKeyProvider provider, NKeyType type, char[] publicKey, char[] privateKey) {
         this.provider = provider;
-        this.type = t;
+        this.type = type;
         this.privateKeyAsSeed = privateKey;
         this.publicKey = publicKey;
     }
@@ -63,7 +73,8 @@ public class NKey {
     }
 
     /**
-     * @return the string encoded seed for this NKey
+     * Get the string encoded seed for this NKey
+     * @return the seed characters
      */
     public char[] getSeed() {
         NKeyDecodedSeed decoded = getDecodedSeed();
@@ -76,27 +87,46 @@ public class NKey {
         }
     }
 
-    private void ensurePair() {
+    /**
+     * Ensures that the NKey is a pair, not public only
+     * @throws IllegalStateException if the NKey is a public only key
+     */
+    public void ensurePair() {
         if (isPublicOnly()) {
             throw new IllegalStateException("Public-only NKey");
         }
     }
 
+    /**
+     * Get the decoded seed
+     * @return the decoded seed
+     * @throws IllegalStateException if the NKey is a public only key
+     */
     public NKeyDecodedSeed getDecodedSeed() {
         ensurePair();
         return decodeSeed(privateKeyAsSeed);
     }
 
+    /**
+     * Does this NKey represent both the public and private key
+     * @return true if is a pair
+     */
     public boolean isPair() {
         return privateKeyAsSeed != null;
     }
 
+    /**
+     * Does this NKey represent only the public key half,
+     * meaning does not have the private key half
+     * @return true if is public only
+     */
     public boolean isPublicOnly() {
         return privateKeyAsSeed == null;
     }
 
     /**
-     * @return the encoded public key for this NKey
+     * Get the encoded public key for this NKey
+     * @return the encoded characters
      */
     public char[] getPublicKey() {
         if (publicKey != null) {
@@ -106,7 +136,8 @@ public class NKey {
     }
 
     /**
-     * @return the encoded private key for this NKey
+     * Get the encoded private key for this NKey
+     * @return the encoded characters
      */
     public char[] getPrivateKey() {
         NKeyDecodedSeed decoded = getDecodedSeed();
@@ -114,7 +145,8 @@ public class NKey {
     }
 
     /**
-     * @return A Java security keypair that represents this NKey in Java security form.
+     * Get the Java security keypair that represents this NKey in Java security form.
+     * @return the KeyPair
      */
     public KeyPair getKeyPair() {
         ensurePair();
@@ -122,7 +154,8 @@ public class NKey {
     }
 
     /**
-     * @return the Type of this NKey
+     * Get the NKeyType of this NKey
+     * @return the NKeyType
      */
     public NKeyType getType() {
         return type;
