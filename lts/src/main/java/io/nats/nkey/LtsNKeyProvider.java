@@ -38,6 +38,7 @@ public class LtsNKeyProvider extends NKeyProvider {
      */
     @Override
     public KeyPair getKeyPair(NKey nkey) {
+        nkey.ensurePair();
         NKeyDecodedSeed decoded = nkey.getDecodedSeed();
         byte[] seedBytes = new byte[ED25519_SEED_SIZE];
         byte[] pubBytes = new byte[ED25519_PUBLIC_KEYSIZE];

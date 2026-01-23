@@ -15,10 +15,11 @@ group = 'io.nats.nkeys'
 
 def isRelease = System.getenv("BUILD_EVENT") == "release"
 def tc = System.getenv("TARGET_COMPATIBILITY")
-def targetJavaVersion = tc == null ? JavaVersion.VERSION_1_8 : JavaVersion.toVersion(tc)
+def targetJavaVersion = tc == null ? JavaVersion.VERSION_17 : JavaVersion.toVersion(tc)
 def targetId = targetJavaVersion.toString()
-def artifact = "bc" + (targetJavaVersion == JavaVersion.VERSION_1_8 ? "" : "-jdk" + targetId)
-def bundleName = "io.nats.nkeys.bc" + (targetJavaVersion == JavaVersion.VERSION_1_8 ? "" : ".jdk" + targetId)
+def artifact = "regular-jdk" + targetId
+def bundleName = "io.nats.nkeys.regular.jdk" + targetId
+def coreName = "core-jdk" + targetId
 
 System.out.println("targetCompatibility: " + targetId)
 System.out.println("artifact: " + artifact)
@@ -28,7 +29,7 @@ System.out.println("bundleName: " + bundleName)
 version = isRelease ? jarVersion : jarVersion + "-SNAPSHOT" // version is the variable the gradle uses.
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = targetJavaVersion
     withSourcesJar()
     withJavadocJar()
@@ -42,7 +43,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.nats.nkeys:core:3.0.0-SNAPSHOT'
+    implementation 'io.nats.nkeys:' + coreName + ':3.0.0-SNAPSHOT'
     implementation 'org.bouncycastle:bcprov-jdk18on:1.83'
     implementation 'org.jspecify:jspecify:1.0.0'
 

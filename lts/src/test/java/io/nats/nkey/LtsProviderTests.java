@@ -34,9 +34,7 @@ public class LtsProviderTests {
 
     @BeforeAll
     static void beforeAll() {
-        NKeyProvider.clearInstance();
-        System.setProperty(NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY, "io.nats.nkey.LtsNKeyProvider");
-        PROVIDER = getProvider();
+        PROVIDER = new LtsNKeyProvider();
     }
 
     @Test
