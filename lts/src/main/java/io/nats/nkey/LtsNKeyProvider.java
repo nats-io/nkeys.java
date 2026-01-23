@@ -19,7 +19,7 @@ public class LtsNKeyProvider extends NKeyProvider {
      * {@inheritDoc}
      */
     @Override
-    public NKey createPair(NKeyType type, byte[] seed) {
+    public NKey createNKey(NKeyType type, byte[] seed) {
         Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(seed);
         Ed25519PublicKeyParameters publicKey = privateKey.generatePublicKey();
 
@@ -38,6 +38,7 @@ public class LtsNKeyProvider extends NKeyProvider {
      */
     @Override
     public KeyPair getKeyPair(NKey nkey) {
+        nkey.ensurePair();
         NKeyDecodedSeed decoded = nkey.getDecodedSeed();
         byte[] seedBytes = new byte[ED25519_SEED_SIZE];
         byte[] pubBytes = new byte[ED25519_PUBLIC_KEYSIZE];

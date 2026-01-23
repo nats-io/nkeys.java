@@ -1,0 +1,37 @@
+name: Lts Pull Request
+permissions:
+  contents: read
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'lts/**'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        tc: [ 17, 21, 25 ]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./lts
+    env:
+      BUILD_EVENT: ${{ github.event_name }}
+      TARGET_COMPATIBILITY: ${{ matrix.tc }}
+    steps:
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: 25
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: current
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Build and Test
+        run: chmod +x gradlew && ./gradlew clean test jacocoTestReport
+      - name: Verify Javadoc
+        run: ./gradlew javadoc

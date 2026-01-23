@@ -22,8 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 
-import static io.nats.nkey.NKeyConstants.NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY;
-import static io.nats.nkey.NKeyProvider.getProvider;
 import static io.nats.nkey.NKeyUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
@@ -36,9 +34,12 @@ public class LtsProviderTests {
 
     @BeforeAll
     static void beforeAll() {
-        NKeyProvider.clearInstance();
-        System.setProperty(NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY, "io.nats.nkey.LtsNKeyProvider");
-        PROVIDER = getProvider();
+        PROVIDER = new LtsNKeyProvider();
+    }
+
+    @Test
+    public void testSecureRandom() {
+        System.out.println(PROVIDER.getSecureRandom().getClass() + " " + PROVIDER.getSecureRandom());
     }
 
     @Test
