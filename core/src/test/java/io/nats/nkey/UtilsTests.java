@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static io.nats.nkey.NKeyConstants.*;
-import static io.nats.nkey.NKeyInternalUtils.*;
+import static io.nats.nkey.NKeyProviderUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilsTests {
@@ -89,8 +89,8 @@ public class UtilsTests {
         SecureRandom random = new SecureRandom();
         random.nextBytes(bytes);
 
-        char[] encoded = NKeyInternalUtils.encodeSeed(NKeyType.ACCOUNT, bytes);
-        NKeyDecodedSeed decoded = NKeyInternalUtils.decodeSeed(encoded);
+        char[] encoded = NKeyProviderUtils.encodeSeed(NKeyType.ACCOUNT, bytes);
+        NKeyDecodedSeed decoded = NKeyProviderUtils.decodeSeed(encoded);
 
         assertEquals(NKeyType.ACCOUNT, NKeyType.fromPrefix(decoded.prefix));
         assertArrayEquals(bytes, decoded.bytes);
@@ -102,23 +102,23 @@ public class UtilsTests {
         SecureRandom random = new SecureRandom();
         random.nextBytes(bytes);
 
-        char[] encoded = encode(NKeyType.ACCOUNT, bytes);
-        byte[] decoded = decode(NKeyType.ACCOUNT, encoded);
+        char[] encoded = nkeyEncode(NKeyType.ACCOUNT, bytes);
+        byte[] decoded = NKeyProviderUtils.nkeyDecode(NKeyType.ACCOUNT, encoded);
         assertNotNull(decoded);
         assertArrayEquals(bytes, decoded);
 
-        encoded = encode(NKeyType.USER, bytes);
-        decoded = decode(NKeyType.USER, encoded);
+        encoded = nkeyEncode(NKeyType.USER, bytes);
+        decoded = NKeyProviderUtils.nkeyDecode(NKeyType.USER, encoded);
         assertNotNull(decoded);
         assertArrayEquals(bytes, decoded);
 
-        encoded = encode(NKeyType.SERVER, bytes);
-        decoded = decode(NKeyType.SERVER, encoded);
+        encoded = nkeyEncode(NKeyType.SERVER, bytes);
+        decoded = NKeyProviderUtils.nkeyDecode(NKeyType.SERVER, encoded);
         assertNotNull(decoded);
         assertArrayEquals(bytes, decoded);
 
-        encoded = encode(NKeyType.CLUSTER, bytes);
-        decoded = decode(NKeyType.CLUSTER, encoded);
+        encoded = nkeyEncode(NKeyType.CLUSTER, bytes);
+        decoded = NKeyProviderUtils.nkeyDecode(NKeyType.CLUSTER, encoded);
         assertNotNull(decoded);
         assertArrayEquals(bytes, decoded);
     }
@@ -131,13 +131,13 @@ public class UtilsTests {
 
         char[] encoded = new char[0];
         try {
-            encoded = encode(NKeyType.ACCOUNT, bytes);
+            encoded = nkeyEncode(NKeyType.ACCOUNT, bytes);
         }
         catch (RuntimeException e) {
             fail();
         }
         char[] fEncoded = encoded;
-        assertThrows(IllegalArgumentException.class, () -> decode(NKeyType.USER, fEncoded));
+        assertThrows(IllegalArgumentException.class, () -> NKeyProviderUtils.nkeyDecode(NKeyType.USER, fEncoded));
     }
 
     @Test
@@ -147,13 +147,13 @@ public class UtilsTests {
             SecureRandom random = new SecureRandom();
             random.nextBytes(bytes);
 
-            NKeyInternalUtils.encodeSeed(NKeyType.ACCOUNT, bytes);
+            NKeyProviderUtils.encodeSeed(NKeyType.ACCOUNT, bytes);
         });
     }
 
     @Test
     public void testDecodeSize() {
-        assertThrows(IllegalArgumentException.class, () -> decode(NKeyType.ACCOUNT, "".toCharArray()));
+        assertThrows(IllegalArgumentException.class, () -> NKeyProviderUtils.nkeyDecode(NKeyType.ACCOUNT, "".toCharArray()));
     }
 
     @Test
@@ -163,7 +163,7 @@ public class UtilsTests {
             SecureRandom random = new SecureRandom();
             random.nextBytes(bytes);
 
-            char[] encoded = encode(NKeyType.ACCOUNT, bytes);
+            char[] encoded = nkeyEncode(NKeyType.ACCOUNT, bytes);
 
             StringBuilder builder = new StringBuilder();
             for (int j = 0; j < encoded.length; j++) {
@@ -179,7 +179,7 @@ public class UtilsTests {
                 }
             }
 
-            assertThrows(IllegalArgumentException.class, () -> decode(NKeyType.ACCOUNT, builder.toString().toCharArray()));
+            assertThrows(IllegalArgumentException.class, () -> NKeyProviderUtils.nkeyDecode(NKeyType.ACCOUNT, builder.toString().toCharArray()));
         }
     }
 

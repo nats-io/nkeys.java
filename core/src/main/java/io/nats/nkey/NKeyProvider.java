@@ -24,7 +24,7 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 import static io.nats.nkey.NKeyConstants.*;
-import static io.nats.nkey.NKeyInternalUtils.*;
+import static io.nats.nkey.NKeyProviderUtils.*;
 
 /**
  * The NKeyProvider is the central object in this package.
@@ -226,7 +226,7 @@ public abstract class NKeyProvider {
      * @return the new NKey
      */
     public NKey fromPublicKey(char[] publicKey) {
-        byte[] raw = decode(publicKey);
+        byte[] raw = nkeyDecode(publicKey);
         int prefix = raw[0] & 0xFF;
 
         if (notValidPublicPrefixByte(prefix)) {

@@ -23,8 +23,11 @@ import java.util.Arrays;
 
 import static io.nats.nkey.NKeyConstants.*;
 
-abstract class NKeyInternalUtils {
-    private NKeyInternalUtils() {} /* ensures cannot be constructed */
+/**
+ * Provider Utils
+ */
+public abstract class NKeyProviderUtils {
+    private NKeyProviderUtils() {} /* ensures cannot be constructed */
 
     private static final String BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
     private static final int MASK = 31;
@@ -41,19 +44,28 @@ abstract class NKeyInternalUtils {
         }
     }
 
-    static boolean notValidPublicPrefixByte(int prefix) {
-        switch (prefix) {
-            case PREFIX_BYTE_SERVER:
-            case PREFIX_BYTE_CLUSTER:
-            case PREFIX_BYTE_OPERATOR:
-            case PREFIX_BYTE_ACCOUNT:
-            case PREFIX_BYTE_USER:
-                return false;
-        }
-        return true;
+    /**
+     * determine if the prefix is not a public prefix
+     * @param prefix the prefix
+     * @return true if the prefix is not public
+     */
+    public static boolean notValidPublicPrefixByte(int prefix) {
+        return switch (prefix) {
+            case PREFIX_BYTE_SERVER,
+                 PREFIX_BYTE_CLUSTER,
+                 PREFIX_BYTE_OPERATOR,
+                 PREFIX_BYTE_ACCOUNT,
+                 PREFIX_BYTE_USER -> false;
+            default -> true;
+        };
     }
 
-    static char[] removePaddingAndClear(char[] withPad) {
+    /**
+     * remove padding from a base32 encoded character array
+     * @param withPad the character array with padding
+     * @return the character array without padding
+     */
+    public static char[] removePaddingAndClear(char[] withPad) {
         int i;
         for (i = withPad.length-1; i >= 0; i--) {
             if (withPad[i] != '=') {
@@ -68,7 +80,13 @@ abstract class NKeyInternalUtils {
         return withoutPad;
     }
 
-    static char[] encode(NKeyType type, byte[] src){
+    /**
+     * Encode to nkey format
+     * @param type the type
+     * @param src the seed bytes
+     * @return the encoded characters
+     */
+    public static char[] nkeyEncode(NKeyType type, byte[] src){
         try {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
@@ -88,7 +106,13 @@ abstract class NKeyInternalUtils {
         }
     }
 
-    static char[] encodeSeed(NKeyType type, byte[] src) {
+    /**
+     * Encode the seed
+     * @param type the type
+     * @param src the seed bytes
+     * @return the encoded characters
+     */
+    public static char[] encodeSeed(NKeyType type, byte[] src) {
         if (src.length != ED25519_PRIVATE_KEYSIZE && src.length != ED25519_SEED_SIZE) {
             throw new IllegalArgumentException("Source is not the correct size for an ED25519 seed");
         }
@@ -118,7 +142,12 @@ abstract class NKeyInternalUtils {
         }
     }
 
-    static byte[] decode(char[] src) {
+    /**
+     * Decode the encoded characters from NKey format
+     * @param src the encoded characters
+     * @return the decoded characters
+     */
+    public static byte[] nkeyDecode(char[] src) {
         byte[] raw = base32Decode(src);
 
         if (raw.length < 4) {
@@ -138,8 +167,14 @@ abstract class NKeyInternalUtils {
         return dataBytes;
     }
 
-    static byte @NonNull [] decode(NKeyType expectedType, char[] src) {
-        byte[] raw = decode(src);
+    /**
+     * Decode the encoded characters from NKey format expecting a specific type
+     * @param expectedType the expected type of the NKey
+     * @param src the encoded characters
+     * @return the decoded characters
+     */
+    public static byte @NonNull [] nkeyDecode(NKeyType expectedType, char[] src) {
+        byte[] raw = nkeyDecode(src);
         byte[] dataBytes = Arrays.copyOfRange(raw, 1, raw.length);
         NKeyType type = NKeyType.fromPrefix(raw[0] & 0xFF);
         if (type == null) {
@@ -151,8 +186,13 @@ abstract class NKeyInternalUtils {
         return dataBytes;
     }
 
-    static NKeyDecodedSeed decodeSeed(char[] seed) {
-        byte[] raw = decode(seed);
+    /**
+     * Decode the seed
+     * @param seed the encoded seed characters
+     * @return the decoded bytes
+     */
+    public static NKeyDecodedSeed decodeSeed(char[] seed) {
+        byte[] raw = nkeyDecode(seed);
 
         // Need to do the reverse here to get back to internal representation.
         int b1 = raw[0] & 248; // 248 = 11111000
@@ -170,7 +210,12 @@ abstract class NKeyInternalUtils {
         return new NKeyDecodedSeed(b2, dataBytes);
     }
 
-    static int crc16(byte[] bytes) {
+    /**
+     * Calculate a crc16
+     * @param bytes the bytes to use to calculate
+     * @return the crc
+     */
+    public static int crc16(byte[] bytes) {
         int crc = 0;
 
         for (byte b : bytes) {
@@ -180,8 +225,13 @@ abstract class NKeyInternalUtils {
         return crc;
     }
 
-    // http://en.wikipedia.org/wiki/Base_32
-    static char[] base32Encode(final byte[] input) {
+    /**
+     * Base 32 Encode a byte array
+     * @see <a href="http://en.wikipedia.org/wiki/Base_32">wikipedia Base 32</a>
+     * @param input the byte array
+     * @return the base32 encoded character array
+     */
+    public static char[] base32Encode(final byte[] input) {
         int last = input.length;
         char[] charBuff = new char[(last + 7) * 8 / SHIFT];
         int offset = 0;
@@ -224,7 +274,13 @@ abstract class NKeyInternalUtils {
         return retVal;
     }
 
-    static byte[] base32Decode(final char[] input) {
+    /**
+     * Base 32 Decode a character array
+     * @see <a href="http://en.wikipedia.org/wiki/Base_32">wikipedia Base 32</a>
+     * @param input the character array
+     * @return the decoded byte array
+     */
+    public static byte[] base32Decode(final char[] input) {
         byte[] bytes = new byte[input.length * SHIFT / 8];
         int buffer = 0;
         int next = 0;
