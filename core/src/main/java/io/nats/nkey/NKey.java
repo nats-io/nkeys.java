@@ -17,7 +17,7 @@ import java.security.KeyPair;
 import java.util.Arrays;
 
 import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
-import static io.nats.nkey.NKeyInternalUtils.*;
+import static io.nats.nkey.NKeyProviderUtils.*;
 
 /**
  * The NKey class
@@ -132,7 +132,7 @@ public class NKey {
         if (publicKey != null) {
             return publicKey;
         }
-        return encode(type, getKeyPair().getPublic().getEncoded());
+        return nkeyEncode(type, getKeyPair().getPublic().getEncoded());
     }
 
     /**
@@ -141,7 +141,7 @@ public class NKey {
      */
     public char[] getPrivateKey() {
         NKeyDecodedSeed decoded = getDecodedSeed();
-        return encode(NKeyType.PRIVATE, decoded.bytes);
+        return nkeyEncode(NKeyType.PRIVATE, decoded.bytes);
     }
 
     /**

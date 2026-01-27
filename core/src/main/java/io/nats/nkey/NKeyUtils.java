@@ -13,7 +13,7 @@
 
 package io.nats.nkey;
 
-import static io.nats.nkey.NKeyInternalUtils.decode;
+import static io.nats.nkey.NKeyProviderUtils.nkeyDecode;
 
 /**
  * General Utils
@@ -28,7 +28,7 @@ public abstract class NKeyUtils {
      * @throws IllegalArgumentException if is not a valid Account key
      */
     public static boolean isValidPublicAccountKey(char[] src) {
-        decode(NKeyType.ACCOUNT, src);
+        nkeyDecode(NKeyType.ACCOUNT, src);
         return true;
     }
 
@@ -39,7 +39,7 @@ public abstract class NKeyUtils {
      * @throws IllegalArgumentException if is not a valid Cluster key
      */
     public static boolean isValidPublicClusterKey(char[] src) {
-        decode(NKeyType.CLUSTER, src);
+        nkeyDecode(NKeyType.CLUSTER, src);
         return true;
     }
 
@@ -50,7 +50,7 @@ public abstract class NKeyUtils {
      * @throws IllegalArgumentException if is not a valid Operator key
      */
     public static boolean isValidPublicOperatorKey(char[] src) {
-        decode(NKeyType.OPERATOR, src);
+        nkeyDecode(NKeyType.OPERATOR, src);
         return true;
     }
 
@@ -61,7 +61,7 @@ public abstract class NKeyUtils {
      * @throws IllegalArgumentException if is not a valid Server key
      */
     public static boolean isValidPublicServerKey(char[] src) {
-        decode(NKeyType.SERVER, src);
+        nkeyDecode(NKeyType.SERVER, src);
         return true;
     }
 
@@ -72,7 +72,7 @@ public abstract class NKeyUtils {
      * @throws IllegalArgumentException if is not a valid User key
      */
     public static boolean isValidPublicUserKey(char[] src) {
-        decode(NKeyType.USER, src);
+        nkeyDecode(NKeyType.USER, src);
         return true;
     }
 }
