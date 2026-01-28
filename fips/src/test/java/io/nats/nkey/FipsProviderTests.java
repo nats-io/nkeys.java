@@ -47,7 +47,7 @@ public class FipsProviderTests {
         assertNotNull(theKey);
 
         char[] seed = theKey.getSeed();
-        NKeyInternalUtils.decodeSeed(seed); // throws if there is an issue
+        NKeyProviderUtils.decodeSeed(seed); // throws if there is an issue
 
         assertEquals(PROVIDER.fromSeed(theKey.getSeed()), PROVIDER.fromSeed(theKey.getSeed()));
 
@@ -81,7 +81,7 @@ public class FipsProviderTests {
         assertNotNull(theKey);
 
         char[] seed = theKey.getSeed();
-        NKeyInternalUtils.decodeSeed(seed); // throws if there is an issue
+        NKeyProviderUtils.decodeSeed(seed); // throws if there is an issue
 
         assertEquals(PROVIDER.fromSeed(theKey.getSeed()), PROVIDER.fromSeed(theKey.getSeed()));
 
@@ -115,7 +115,7 @@ public class FipsProviderTests {
         assertNotNull(theKey);
 
         char[] seed = theKey.getSeed();
-        NKeyInternalUtils.decodeSeed(seed); // throws if there is an issue
+        NKeyProviderUtils.decodeSeed(seed); // throws if there is an issue
 
         assertEquals(PROVIDER.fromSeed(theKey.getSeed()), PROVIDER.fromSeed(theKey.getSeed()));
 
@@ -149,7 +149,7 @@ public class FipsProviderTests {
         assertNotNull(theKey);
 
         char[] seed = theKey.getSeed();
-        NKeyInternalUtils.decodeSeed(seed); // throws if there is an issue
+        NKeyProviderUtils.decodeSeed(seed); // throws if there is an issue
 
         assertEquals(PROVIDER.fromSeed(theKey.getSeed()), PROVIDER.fromSeed(theKey.getSeed()));
 
@@ -183,7 +183,7 @@ public class FipsProviderTests {
         assertNotNull(theKey);
 
         char[] seed = theKey.getSeed();
-        NKeyInternalUtils.decodeSeed(seed); // throws if there is an issue
+        NKeyProviderUtils.decodeSeed(seed); // throws if there is an issue
 
         assertEquals(PROVIDER.fromSeed(theKey.getSeed()), PROVIDER.fromSeed(theKey.getSeed()));
 
@@ -406,8 +406,8 @@ public class FipsProviderTests {
         assertArrayEquals(fromSeed.getPublicKey(), publicKey);
         assertArrayEquals(fromSeed.getPrivateKey(), privateKey);
 
-        NKeyDecodedSeed decoded = NKeyInternalUtils.decodeSeed(seed);
-        char[] encodedSeed = NKeyInternalUtils.encodeSeed(NKeyType.fromPrefix(decoded.prefix), decoded.bytes);
+        NKeyDecodedSeed decoded = NKeyProviderUtils.decodeSeed(seed);
+        char[] encodedSeed = NKeyProviderUtils.encodeSeed(NKeyType.fromPrefix(decoded.prefix), decoded.bytes);
         assertArrayEquals(encodedSeed, seed);
     }
 

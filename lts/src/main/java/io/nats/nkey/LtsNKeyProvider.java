@@ -9,8 +9,8 @@ import java.security.KeyPair;
 
 import static io.nats.nkey.NKeyConstants.ED25519_PUBLIC_KEYSIZE;
 import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
-import static io.nats.nkey.NKeyInternalUtils.decode;
-import static io.nats.nkey.NKeyInternalUtils.encodeSeed;
+import static io.nats.nkey.NKeyProviderUtils.encodeSeed;
+import static io.nats.nkey.NKeyProviderUtils.nkeyDecode;
 
 @NullMarked
 public class LtsNKeyProvider extends NKeyProvider {
@@ -75,7 +75,7 @@ public class LtsNKeyProvider extends NKeyProvider {
         }
         else {
             char[] encodedPublicKey = nkey.getPublicKey();
-            byte[] decodedPublicKey = decode(nkey.getType(), encodedPublicKey);
+            byte[] decodedPublicKey = nkeyDecode(nkey.getType(), encodedPublicKey);
             publicKey = new Ed25519PublicKeyParameters(decodedPublicKey);
         }
 
