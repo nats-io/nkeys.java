@@ -40,7 +40,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jspecify:jspecify:1.0.0'
+    api 'org.jspecify:jspecify:1.0.0'
 
     testImplementation 'org.bouncycastle:bcprov-lts8on:2.73.10'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
