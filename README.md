@@ -66,9 +66,11 @@ collection of random bytes called a nonce.
 
 ### JDK Version
 
-This project uses Java 17 Language Level api, but builds with Java 17, Java 21 and Java 25, so creates 3 different artifacts per component.
-All have the same group id `io.nats.nkeys`, and the same version but have different artifact names.
-
+This project uses Java 17 Language Level api, 
+but builds with Java 17, Java 21 and Java 25, 
+so creates 3 different artifacts per component.
+All have the same group id `io.nats.nkeys`, 
+and the same version but have different artifact names.
 
 
 | Component | JDK 17          | JDK 21          | JDK 25          |
@@ -81,15 +83,17 @@ All have the same group id `io.nats.nkeys`, and the same version but have differ
 
 The NATS client is available in the Maven central repository,
 and can be imported as a standard dependency in your `build.gradle` or `pom.xml` file,
-The examples shown use the jdk 17 version. To use the JDK 21 or 25 version just change the artifact id.
-The _regular_ and _lts_ libraries automatically depend on the _core_ of the same JDK.
+The examples show use of the jdk 17 version. 
+* To use the JDK 21 or 25 version just change the artifact id.
+* To use the LTS instead of the Regular version, change regular to lts
+
+The **regular** and **lts** libraries automatically depend on the **core** of the same JDK.
 
 #### Gradle
 
 ```groovy
 dependencies {
-    implementation 'io.nats.nkeys:core-jdk17:3.0.2'
-    implementation 'io.nats.nkeys:regular-jdk17:3.0.2'
+    implementation 'io.nats.nkeys:regular-jdk17:3.0.3'
 }
 ```
 
@@ -109,11 +113,8 @@ repositories {
 ```xml
 <dependency>
     <groupId>io.nats.nkeys</groupId>
-    <artifactId>core-jdk17</artifactId>
-    <version>3.0.2</version>
-    <groupId>io.nats.nkeys</groupId>
     <artifactId>regular-jdk17</artifactId>
-    <version>3.0.2</version>
+    <version>3.0.3</version>
 </dependency>
 ```
 
