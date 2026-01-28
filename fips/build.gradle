@@ -10,7 +10,7 @@ plugins {
     id("signing")
 }
 
-def jarVersion = "3.0.2"
+def jarVersion = "3.0.3"
 group = 'io.nats.nkeys'
 
 def isRelease = System.getenv("BUILD_EVENT") == "release"
@@ -43,7 +43,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.nats.nkeys:' + coreName + ':3.0.2'
+    api 'io.nats.nkeys:' + coreName + ':3.0.2'
+
     implementation 'org.bouncycastle:bc-fips:2.1.2'
     implementation 'org.jspecify:jspecify:1.0.0'
 
