@@ -43,7 +43,7 @@ repositories {
 }
 
 dependencies {
-    api 'io.nats.nkeys:' + coreName + ':3.0.2'
+    api 'io.nats.nkeys:' + coreName + ':3.0.3'
 
     implementation 'org.bouncycastle:bcprov-lts8on:2.73.10'
     implementation 'org.jspecify:jspecify:1.0.0'
