@@ -21,6 +21,7 @@ import org.junit.jupiter.api.parallel.Execution;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 
 import static io.nats.nkey.NKeyConstants.NKEY_PROVIDER_CLASS_SYSTEM_PROPERTY;
 import static io.nats.nkey.NKeyProvider.getProvider;
@@ -463,5 +464,75 @@ public class NKeyProviderTests {
         assertArrayEquals(fromSeed.getPublicKey(), fromKey.getPublicKey());
         assertArrayEquals(userEncodedPubKey.toCharArray(), fromSeed.getPublicKey());
         assertArrayEquals(userEncodedPubKey.toCharArray(), fromKey.getPublicKey());
+    }
+
+    static byte[] TO_SIGN = "Synadia".getBytes(StandardCharsets.UTF_8);
+
+    @Test
+    public void testFromText() {
+        List<String> inputs = ResourceUtils.resourceAsLines("test-nkeys.txt");
+        for (int i = 0; i < inputs.size(); ) {
+            String name = inputs.get(i++);
+            int prefix = Integer.parseInt(inputs.get(i++));
+            char[] seed = inputs.get(i++).toCharArray();
+            char[] publicKey = inputs.get(i++).toCharArray();
+            char[] privateKey = inputs.get(i++).toCharArray();
+            byte[] decoded = toBytes(inputs.get(i++));
+            byte[] signed = toBytes(inputs.get(i++));
+
+            NKeyType type = NKeyType.fromPrefix(prefix);
+            assertNotNull(type);
+            assertEquals(name, type.name());
+
+            NKey fromSeed = PROVIDER.fromSeed(seed);
+            NKey fromPublicKey = PROVIDER.fromPublicKey(publicKey);
+
+            assertArrayEquals(seed, fromSeed.getSeed());
+            assertArrayEquals(publicKey, fromSeed.getPublicKey());
+            assertArrayEquals(privateKey, fromSeed.getPrivateKey());
+            assertArrayEquals(publicKey, fromPublicKey.getPublicKey());
+            assertEquals(prefix, fromSeed.getDecodedSeed().prefix);
+            assertArrayEquals(decoded, fromSeed.getDecodedSeed().bytes);
+            assertArrayEquals(signed, fromSeed.sign(TO_SIGN));
+        }
+    }
+
+    @Test
+    public void testGenerateTestNkeysText() {
+        for (int x = 0; x < 10; x++) {
+            generateTestNkeysText(PROVIDER.createUser());
+            generateTestNkeysText(PROVIDER.createAccount());
+            generateTestNkeysText(PROVIDER.createOperator());
+            generateTestNkeysText(PROVIDER.createServer());
+            generateTestNkeysText(PROVIDER.createCluster());
+        }
+    }
+
+    private static void generateTestNkeysText(NKey theKey) {
+        char[] seed = theKey.getSeed();
+        char[] publicKey = theKey.getPublicKey();
+        char[] privateKey = theKey.getPrivateKey();
+        System.out.println(theKey.getType());
+        System.out.println(theKey.getType().prefix);
+        System.out.println(new String(seed));
+        System.out.println(new String(publicKey));
+        System.out.println(new String(privateKey));
+        byte[] bytes = theKey.getDecodedSeed().bytes;
+        System.out.println(toString(bytes));
+        bytes = theKey.sign(TO_SIGN);
+        System.out.println(toString(bytes));
+    }
+
+    private static String toString(byte[] bytes) {
+        return Arrays.toString(bytes).replace("[", "").replace("]", "").replace(" ", "");
+    }
+
+    private byte[] toBytes(String s) {
+        String[] split = s.split(",");
+        byte[] decoded = new byte[split.length];
+        for (int i = 0; i < split.length; i++) {
+            decoded[i] = (byte) Integer.parseInt(split[i]);
+        }
+        return decoded;
     }
 }
