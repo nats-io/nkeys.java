@@ -72,8 +72,9 @@ public class FipsNKeyProvider extends NKeyProvider {
      */
     @Override
     public byte[] sign(NKey nkey, byte[] input) {
-        byte[] seedBytes = nkey.getKeyPair().getPrivate().getEncoded();
-        byte[] pubBytes = nkey.getKeyPair().getPublic().getEncoded();
+        KeyPair keyPair = nkey.getKeyPair();
+        byte[] seedBytes = keyPair.getPrivate().getEncoded();
+        byte[] pubBytes = keyPair.getPublic().getEncoded();
         AsymmetricEdDSAPrivateKey privateKey = new AsymmetricEdDSAPrivateKey(FipsEdEC.Ed25519.getAlgorithm(), seedBytes, pubBytes);
 
         FipsEdEC.EdDSAOperatorFactory factory = new FipsEdEC.EdDSAOperatorFactory();
