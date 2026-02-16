@@ -83,7 +83,7 @@ public class FipsNKeyProvider extends NKeyProvider {
         try {
             UpdateOutputStream stream = signer.getSigningStream();
             stream.update(input, 0, input.length);
-            stream.close();
+            stream.finished();
             return signer.getSignature();
         }
         catch (IOException e) {
