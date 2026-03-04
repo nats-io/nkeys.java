@@ -3,9 +3,7 @@ permissions:
   contents: read
 on:
   push:
-    branches:
-      - main
-#    tags: [ 'impl/*' ]
+    tags: [ 'impl/*' ]
 
 jobs:
   build:
@@ -26,22 +24,21 @@ jobs:
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
     steps:
-#      - name: Set up JDK
-#        uses: actions/setup-java@v5
-#        with:
-#          java-version: 25
-#          distribution: 'temurin'
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v5
-#        with:
-#          gradle-version: current
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: 25
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: current
       - name: Check out code
         uses: actions/checkout@v4
-      - name: Debug matrix values
+      - name: Build, Sign and Publish Release
         run: |
-          echo "TC: ${{ matrix.tc }}"
-          echo "IMPL: ${{ matrix.impl }}"
-          echo "Current directory using pwd:"
-          pwd
-#      - name: Build, Sign and Publish Release
-#        run: chmod +x gradlew && ./gradlew clean compileJava publishToSonatype closeAndReleaseSonatypeStagingRepository
+          echo "Target Compatibility: JDK ${{ matrix.tc }}"
+          echo "Implementation: ${{ matrix.impl }}"
+          echo "Working Directory: $(pwd)"
+          chmod +x gradlew
+          ./gradlew clean compileJava publishToSonatype closeAndReleaseSonatypeStagingRepository
