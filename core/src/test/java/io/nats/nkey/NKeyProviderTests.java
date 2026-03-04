@@ -497,36 +497,6 @@ public class NKeyProviderTests {
         }
     }
 
-    @Test
-    public void testGenerateTestNkeysText() {
-        for (int x = 0; x < 10; x++) {
-            generateTestNkeysText(PROVIDER.createUser());
-            generateTestNkeysText(PROVIDER.createAccount());
-            generateTestNkeysText(PROVIDER.createOperator());
-            generateTestNkeysText(PROVIDER.createServer());
-            generateTestNkeysText(PROVIDER.createCluster());
-        }
-    }
-
-    private static void generateTestNkeysText(NKey theKey) {
-        char[] seed = theKey.getSeed();
-        char[] publicKey = theKey.getPublicKey();
-        char[] privateKey = theKey.getPrivateKey();
-        System.out.println(theKey.getType());
-        System.out.println(theKey.getType().prefix);
-        System.out.println(new String(seed));
-        System.out.println(new String(publicKey));
-        System.out.println(new String(privateKey));
-        byte[] bytes = theKey.getDecodedSeed().bytes;
-        System.out.println(toString(bytes));
-        bytes = theKey.sign(TO_SIGN);
-        System.out.println(toString(bytes));
-    }
-
-    private static String toString(byte[] bytes) {
-        return Arrays.toString(bytes).replace("[", "").replace("]", "").replace(" ", "");
-    }
-
     private byte[] toBytes(String s) {
         String[] split = s.split(",");
         byte[] decoded = new byte[split.length];
@@ -535,4 +505,37 @@ public class NKeyProviderTests {
         }
         return decoded;
     }
+
+    // This code was used to generate the text
+    // It's left here for reference
+//    @Test
+//    public void testGenerateTestNkeysText() {
+//        for (int x = 0; x < 10; x++) {
+//            generateTestNkeysText(PROVIDER.createUser());
+//            generateTestNkeysText(PROVIDER.createAccount());
+//            generateTestNkeysText(PROVIDER.createOperator());
+//            generateTestNkeysText(PROVIDER.createServer());
+//            generateTestNkeysText(PROVIDER.createCluster());
+//        }
+//    }
+//
+//    private static void generateTestNkeysText(NKey theKey) {
+//        char[] seed = theKey.getSeed();
+//        char[] publicKey = theKey.getPublicKey();
+//        char[] privateKey = theKey.getPrivateKey();
+//        System.out.println(theKey.getType());
+//        System.out.println(theKey.getType().prefix);
+//        System.out.println(new String(seed));
+//        System.out.println(new String(publicKey));
+//        System.out.println(new String(privateKey));
+//        byte[] bytes = theKey.getDecodedSeed().bytes;
+//        System.out.println(toString(bytes));
+//        bytes = theKey.sign(TO_SIGN);
+//        System.out.println(toString(bytes));
+//    }
+//
+//    private static String toString(byte[] bytes) {
+//        return Arrays.toString(bytes).replace("[", "").replace("]", "").replace(" ", "");
+//    }
+//
 }
