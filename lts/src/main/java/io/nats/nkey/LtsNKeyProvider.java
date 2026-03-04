@@ -12,6 +12,9 @@ import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
 import static io.nats.nkey.NKeyProviderUtils.encodeSeed;
 import static io.nats.nkey.NKeyProviderUtils.nkeyDecode;
 
+/**
+ * Nkey Provider Implementation for LTS
+ */
 @NullMarked
 public class LtsNKeyProvider extends NKeyProvider {
 
