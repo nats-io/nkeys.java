@@ -1,9 +1,21 @@
 package io.nats.nkey;
 
+import org.bouncycastle.crypto.UpdateOutputStream;
+import org.bouncycastle.crypto.asymmetric.AsymmetricEdDSAPrivateKey;
+import org.bouncycastle.crypto.asymmetric.AsymmetricEdDSAPublicKey;
+import org.bouncycastle.crypto.fips.FipsEdEC;
+import org.bouncycastle.crypto.fips.FipsOutputSigner;
+import org.bouncycastle.crypto.fips.FipsOutputVerifier;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.jspecify.annotations.NullMarked;
 
+import java.io.IOException;
 import java.security.*;
+
+import static io.nats.nkey.NKeyConstants.ED25519_PUBLIC_KEYSIZE;
+import static io.nats.nkey.NKeyConstants.ED25519_SEED_SIZE;
+import static io.nats.nkey.NKeyProviderUtils.encodeSeed;
+import static io.nats.nkey.NKeyProviderUtils.nkeyDecode;
 
 @NullMarked
 public class FipsNKeyProvider extends NKeyProvider {
@@ -26,7 +38,14 @@ public class FipsNKeyProvider extends NKeyProvider {
      */
     @Override
     public NKey createNKey(NKeyType type, byte[] seed) {
-        throw new UnsupportedOperationException("createPair not supported yet.");
+        byte[] pubBytes = FipsEdEC.computePublicData(FipsEdEC.Ed25519.getAlgorithm(), seed);
+
+        byte[] bytes = new byte[pubBytes.length + seed.length];
+        System.arraycopy(seed, 0, bytes, 0, seed.length);
+        System.arraycopy(pubBytes, 0, bytes, seed.length, pubBytes.length);
+
+        char[] encoded = encodeSeed(type, bytes);
+        return new NKey(this, type, null, encoded);
     }
 
     /**
@@ -35,7 +54,17 @@ public class FipsNKeyProvider extends NKeyProvider {
     @Override
     public KeyPair getKeyPair(NKey nkey) {
         nkey.ensurePair();
-        throw new UnsupportedOperationException("getKeyPair not supported yet.");
+        NKeyDecodedSeed decoded = nkey.getDecodedSeed();
+        byte[] seedBytes = new byte[ED25519_SEED_SIZE];
+        byte[] pubBytes = new byte[ED25519_PUBLIC_KEYSIZE];
+
+        System.arraycopy(decoded.bytes, 0, seedBytes, 0, seedBytes.length);
+        System.arraycopy(decoded.bytes, seedBytes.length, pubBytes, 0, pubBytes.length);
+
+        AsymmetricEdDSAPrivateKey privateKey = new AsymmetricEdDSAPrivateKey(FipsEdEC.Ed25519.getAlgorithm(), seedBytes, pubBytes);
+        AsymmetricEdDSAPublicKey publicKey = new AsymmetricEdDSAPublicKey(FipsEdEC.Ed25519.getAlgorithm(), pubBytes);
+
+        return new KeyPair(new PublicKeyWrapper(publicKey), new PrivateKeyWrapper(privateKey));
     }
 
     /**
@@ -43,7 +72,23 @@ public class FipsNKeyProvider extends NKeyProvider {
      */
     @Override
     public byte[] sign(NKey nkey, byte[] input) {
-        throw new UnsupportedOperationException("sign not supported yet.");
+        KeyPair keyPair = nkey.getKeyPair();
+        byte[] seedBytes = keyPair.getPrivate().getEncoded();
+        byte[] pubBytes = keyPair.getPublic().getEncoded();
+        AsymmetricEdDSAPrivateKey privateKey = new AsymmetricEdDSAPrivateKey(FipsEdEC.Ed25519.getAlgorithm(), seedBytes, pubBytes);
+
+        FipsEdEC.EdDSAOperatorFactory factory = new FipsEdEC.EdDSAOperatorFactory();
+        FipsOutputSigner<FipsEdEC.Parameters> signer = factory.createSigner(privateKey, FipsEdEC.EdDSA);
+
+        try {
+            UpdateOutputStream stream = signer.getSigningStream();
+            stream.update(input, 0, input.length);
+            stream.finished();
+            return signer.getSignature();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -51,6 +96,28 @@ public class FipsNKeyProvider extends NKeyProvider {
      */
     @Override
     public boolean verify(NKey nkey, byte[] input, byte[] signature) {
-        throw new UnsupportedOperationException("verify not supported yet.");
+        AsymmetricEdDSAPublicKey publicKey;
+        if (nkey.isPair()) {
+            byte[] pubBytes = nkey.getKeyPair().getPublic().getEncoded();
+            publicKey = new AsymmetricEdDSAPublicKey(FipsEdEC.Ed25519.getAlgorithm(), pubBytes);
+        }
+        else {
+            char[] encodedPublicKey = nkey.getPublicKey();
+            byte[] decodedPublicKey = nkeyDecode(nkey.getType(), encodedPublicKey);
+            publicKey = new AsymmetricEdDSAPublicKey(FipsEdEC.Ed25519.getAlgorithm(), decodedPublicKey);
+        }
+
+        FipsEdEC.EdDSAOperatorFactory factory = new FipsEdEC.EdDSAOperatorFactory();
+        FipsOutputVerifier<FipsEdEC.Parameters> verifier = factory.createVerifier(publicKey, FipsEdEC.EdDSA);
+
+        try {
+            UpdateOutputStream stream = verifier.getVerifyingStream();
+            stream.update(input, 0, input.length);
+            stream.close();
+            return verifier.isVerified(signature);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
