@@ -48,11 +48,11 @@ public class CoverageTests {
     public void testKeyWrapper() {
         CorePrivateKeyWrapper v = new CorePrivateKeyWrapper(null);
         assertEquals("EdDSA", v.getAlgorithm());
-        assertEquals("PKCS#8", v.getFormat());
+        assertEquals("NATS-NKey", v.getFormat());
 
         CorePublicKeyWrapper u = new CorePublicKeyWrapper(null);
         assertEquals("EdDSA", u.getAlgorithm());
-        assertEquals("PKCS#8", u.getFormat());
+        assertEquals("NATS-NKey", u.getFormat());
     }
 
     @Test

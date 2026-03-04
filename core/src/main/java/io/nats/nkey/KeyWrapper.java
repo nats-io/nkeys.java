@@ -24,6 +24,6 @@ abstract class KeyWrapper implements Key {
 
     @Override
     public String getFormat() {
-        return "PKCS#8";
+        return "NATS-NKey";
     }
 }
