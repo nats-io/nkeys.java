@@ -10,7 +10,7 @@ plugins {
     id("signing")
 }
 
-def jarVersion = "3.0.5"
+def jarVersion = "3.0.6"
 group = 'io.nats.nkeys'
 
 def isRelease = System.getenv("BUILD_EVENT") == "release"
