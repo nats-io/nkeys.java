@@ -1,0 +1,144 @@
+// The build shared by core and the implementations (regular, lts, fips).
+// A module's build.gradle sets moduleDescription, then applies this script.
+// Each module is published per target JDK as <module>-jdk<tc>, for example core-jdk17 or lts-jdk21.
+
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+apply plugin: 'jacoco'
+apply plugin: 'biz.aQute.bnd.builder'
+apply plugin: 'org.gradle.test-retry'
+apply plugin: 'signing'
+
+def artifact = project.name + "-jdk" + targetId
+def bundleName = "io.nats.nkeys." + project.name + ".jdk" + targetId
+def isProvider = project.name != 'core'
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // --release compiles against the API of that JDK, not of the JDK running the build
+    options.release = targetJavaVersion.majorVersion as int
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api 'org.jspecify:jspecify:1.0.0'
+
+    testImplementation platform('org.junit:junit-bom:5.14.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+if (isProvider) {
+    dependencies {
+        api project(':core')
+    }
+
+    // Only one implementation may be used. Every implementation publishes the same capability,
+    // so Gradle fails dependency resolution when two of them are in one build.
+    // Declaring a capability replaces the default one, so the default is declared again.
+    [configurations.apiElements, configurations.runtimeElements].each {
+        it.outgoing.capability("${group}:${artifact}:${version}")
+        it.outgoing.capability("${group}:nkey-provider:${version}")
+    }
+}
+
+jar {
+    bundle {
+        def headers = [
+            "Bundle-Name": bundleName,
+            "Bundle-SymbolicName": "io.nats.nkeys." + project.name,
+            "Bundle-Vendor": "nats.io",
+            "Bundle-Description": moduleDescription,
+            "Bundle-DocURL": "https://github.com/nats-io/nkeys.java",
+            "Target-Compatibility": "Java " + targetJavaVersion
+        ]
+        if (isProvider) {
+            // a fragment of core: its classes are in core's package io.nats.nkey, and
+            // NKeyProvider loads the provider class by name through core's class loader
+            headers["Fragment-Host"] = "io.nats.nkeys.core"
+            headers["Import-Package"] = "!io.nats.nkey, *"
+        }
+        else {
+            // export the package so other OSGi bundles (jnats) can import it
+            headers["-exportcontents"] = "io.nats.nkey"
+        }
+        bnd(headers)
+    }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        exceptionFormat = 'full'
+        events "started", "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+javadoc {
+    options.overview = 'src/main/javadoc/overview.html' // relative to source root
+    source = sourceSets.main.allJava
+    title = "NATS.IO " + moduleDescription
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+jacoco {
+    toolVersion = "0.8.13"
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true // coveralls plugin depends on xml format report
+        html.required = true
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = artifact
+            pom {
+                name = 'NATS.IO Java NKeys'
+                description = moduleDescription
+                url = 'https://github.com/nats-io/nkeys.java'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = "synadia"
+                        name = "Synadia"
+                        email = "info@synadia.com"
+                        url = "https://nats.io"
+                    }
+                }
+                scm {
+                    url = 'https://github.com/nats-io/nkeys.java'
+                }
+            }
+        }
+    }
+}
+
+if (isRelease) {
+    signing {
+        def signingKeyId = System.getenv('SIGNING_KEY_ID')
+        def signingKey = System.getenv('SIGNING_KEY')
+        def signingPassword = System.getenv('SIGNING_PASSWORD')
+        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        sign configurations.archives
+        sign publishing.publications.mavenJava
+    }
+}

@@ -4,21 +4,21 @@ This file lists the dependencies used in this repository.
 
 #### Runtime Dependencies
 
-| Dependency                            | License     |
-|---------------------------------------|-------------|
-| org.bouncycastle:bcprov-lts8on:2.73.7 | MIT License |
+| Dependency                                     | License                   | Used by  |
+|------------------------------------------------|---------------------------|----------|
+| org.jspecify:jspecify:1.0.0                    | Apache 2.0 License        | all      |
+| org.bouncycastle:bcprov-jdk18on:1.86           | MIT License               | regular  |
+| org.bouncycastle:bcprov-lts8on:2.73.13         | MIT License               | lts      |
+| org.bouncycastle:bc-fips:2.1.3                 | Bouncy Castle Licence     | fips     |
 
 #### Test Dependencies
 
 | Dependency                                      | License                                 |
 |-------------------------------------------------|-----------------------------------------|
-| org.junit.jupiter:junit-jupiter-api:5.7.0       | Apache 2.0 License                      |
-| org.junit.jupiter:junit-jupiter-engine:5.7.0    | Apache 2.0 License                      |
-| org.junit.jupiter:junit-jupiter-params:5.7.0    | Apache 2.0 License                      |
-| org.junit.jupiter:junit-jupiter:5.7.0           | Apache 2.0 License                      |
-| org.junit.platform:junit-platform-commons:1.7.0 | Apache 2.0 License                      |
-| org.junit.platform:junit-platform-engine:1.7.0  | Apache 2.0 License                      |
-| nl.jqno.equalsverifier:equalsverifier:3.12.3    | Apache 2.0 License                      |
+| org.junit:junit-bom:5.14.1                      | Eclipse Public License Version 2.0      |
+| org.junit.jupiter:junit-jupiter:5.14.1          | Eclipse Public License Version 2.0      |
+| org.junit.platform:junit-platform-launcher      | Eclipse Public License Version 2.0      |
+| org.bouncycastle:bcprov-lts8on:2.73.13 (core)   | MIT License                             |
 
 #### Build / Coverage Dependencies
 
