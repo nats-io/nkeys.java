@@ -4,7 +4,7 @@
 
 The library allows you to create and use NKEYS in Java code. 
 
-![Static Badge](https://img.shields.io/badge/Current_Release-3.0.5-blue?style=for-the-badge)
+![Static Badge](https://img.shields.io/badge/Current_Release-3.0.6-blue?style=for-the-badge)
 
 
 |            Feature | Core                                                                                                                                                                         | Regular                                                                                                                                                                               | LTS                                                                                                                                                                       |
@@ -98,7 +98,7 @@ Use exactly one implementation (**regular**, **lts** or **fips**). They contain 
 
 ```groovy
 dependencies {
-    implementation 'io.nats.nkeys:regular-jdk17:3.0.5'
+    implementation 'io.nats.nkeys:regular-jdk17:3.0.6'
 }
 ```
 
@@ -119,7 +119,7 @@ repositories {
 <dependency>
     <groupId>io.nats.nkeys</groupId>
     <artifactId>regular-jdk17</artifactId>
-    <version>3.0.5</version>
+    <version>3.0.6</version>
 </dependency>
 ```
 
