@@ -1,13 +1,11 @@
-name: Core Main Snapshot
+name: Build Release
 permissions:
   contents: read
 on:
-  push:
+  release:
     branches:
       - main
-    paths:
-      - 'core/**'
-  workflow_dispatch:
+    types: [released]
 
 jobs:
   build:
@@ -15,11 +13,8 @@ jobs:
       matrix:
         tc: [ 17, 21, 25 ]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./core
     env:
-      BUILD_EVENT: ${{ github.event_name }}
+      BUILD_EVENT: "release"
       TARGET_COMPATIBILITY: ${{ matrix.tc }}
       OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
       OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
@@ -34,18 +29,7 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: current
       - name: Check out code
         uses: actions/checkout@v4
-      - name: Build and Test
-        run: chmod +x gradlew && ./gradlew clean test jacocoTestReport
-      - name: Verify Javadoc
-        run: ./gradlew javadoc
-      - name: Send coverage to Coveralls
-        if: matrix.tc == 17
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
-      - name: Publish Snapshot
-        run: ./gradlew -i publishToSonatype
+      - name: Build, Sign and Publish Release
+        run: chmod +x gradlew && ./gradlew clean compileJava publishToSonatype closeAndReleaseSonatypeStagingRepository
